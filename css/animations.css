@@ -1,0 +1,288 @@
+/* ==========================================
+   Page Preloader & Unique Loading Animation
+   ========================================== */
+.preloader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #06080c;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.8s cubic-bezier(0.77, 0, 0.175, 1), visibility 0.8s;
+  pointer-events: all;
+}
+
+.preloader.fade-out {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Holographic Orbital loading element */
+.hologram-loader {
+  position: relative;
+  width: 180px;
+  height: 180px;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.orbital-ring {
+  position: absolute;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  animation: rotate-ring 3s linear infinite;
+}
+
+.orbital-ring.outer {
+  width: 150px;
+  height: 150px;
+  border-top-color: #6366f1;
+  border-bottom-color: #06b6d4;
+  animation-duration: 4s;
+}
+
+.orbital-ring.middle {
+  width: 110px;
+  height: 110px;
+  border-left-color: #a855f7;
+  border-right-color: #6366f1;
+  animation-direction: reverse;
+  animation-duration: 3s;
+}
+
+.orbital-ring.inner {
+  width: 70px;
+  height: 70px;
+  border-top-color: #06b6d4;
+  border-left-color: #10b981;
+  animation-duration: 2s;
+}
+
+/* Glowing center coin / platform icon */
+.loader-core {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #6366f1, #06b6d4);
+  border-radius: 50%;
+  box-shadow: 0 0 30px #6366f1;
+  animation: pulse-core 1.5s ease-in-out infinite alternate;
+}
+
+body.owner-theme .orbital-ring.outer {
+  border-top-color: #fbbf24;
+  border-bottom-color: #10b981;
+}
+
+body.owner-theme .orbital-ring.middle {
+  border-left-color: #fb923c;
+  border-right-color: #fbbf24;
+}
+
+body.owner-theme .orbital-ring.inner {
+  border-top-color: #10b981;
+  border-left-color: #65a30d;
+}
+
+body.owner-theme .loader-core {
+  background: linear-gradient(135deg, #fbbf24, #10b981);
+  box-shadow: 0 0 30px #fbbf24;
+}
+
+/* Digital scanning line overlay */
+.scanning-bar {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.8), transparent);
+  box-shadow: 0 0 15px rgba(99, 102, 241, 1);
+  animation: scan-vertical 2s ease-in-out infinite alternate;
+}
+
+body.owner-theme .scanning-bar {
+  background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.8), transparent);
+  box-shadow: 0 0 15px rgba(251, 191, 36, 1);
+}
+
+.loader-status-text {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 2px;
+  color: #94a3b8;
+  height: 20px;
+  text-align: center;
+  text-transform: uppercase;
+  margin-top: 1rem;
+}
+
+.loader-status-sub {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+  font-family: var(--font-body);
+}
+
+/* ==========================================
+   Page Transitions & Sliders
+   ========================================== */
+.view-section {
+  transform: translateY(15px);
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+
+.view-section.active-view {
+  transform: translateY(0);
+}
+
+/* ==========================================
+   Micro Interactions & Hover Effects
+   ========================================== */
+/* Premium Shimmer Button effect */
+.btn-primary {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: 0.5s;
+}
+
+.btn-primary:hover::before {
+  left: 100%;
+}
+
+/* Hover scales for dashboard items */
+.dashboard-card-hover {
+  transition: var(--transition-smooth);
+}
+
+.dashboard-card-hover:hover {
+  transform: translateY(-5px);
+}
+
+/* Floating animation for subtle background cards */
+.floating-element {
+  animation: float-y 6s ease-in-out infinite;
+}
+
+/* Custom interactive input label slides */
+.input-wrapper input:focus + .input-icon {
+  color: var(--accent-primary);
+  transform: scale(1.05);
+}
+
+/* Pulse dot for status indicators */
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  position: relative;
+}
+
+.status-indicator.pulse::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  border-radius: 50%;
+  animation: pulse-indicator 1.8s infinite;
+}
+
+.status-indicator.green {
+  background-color: #10b981;
+}
+.status-indicator.green::after {
+  background-color: rgba(16, 185, 129, 0.4);
+}
+
+.status-indicator.red {
+  background-color: #ef4444;
+}
+.status-indicator.red::after {
+  background-color: rgba(239, 68, 68, 0.4);
+}
+
+/* ==========================================
+   Keyframes Definitions
+   ========================================== */
+@keyframes rotate-ring {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse-core {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+}
+
+@keyframes scan-vertical {
+  0% {
+    top: 5%;
+  }
+  100% {
+    top: 95%;
+  }
+}
+
+@keyframes float-y {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+@keyframes pulse-indicator {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2.8);
+    opacity: 0;
+  }
+}
+
+/* Card flip base perspective adjustments */
+.card-perspective {
+  transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.card-perspective:active {
+  transform: scale(0.98);
+}
