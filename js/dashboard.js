@@ -12,15 +12,16 @@ class DashboardController {
 
   // Bind global navigation and modal event listeners
   initGlobalEvents() {
-    // Intercept all button clicks in dashboards except logout and redirect to 404 page
+    // Intercept all button clicks in dashboards except logout/drawer toggle and redirect to 404 page
     document.addEventListener("click", (e) => {
       const btn = e.target.closest("button");
       if (btn) {
         const isDashboardBtn = btn.closest("#dashboard-section") || btn.closest("#deposit-modal");
-        const isLogoutBtn = btn.id === "btn-logout";
+        const isLogoutBtn = btn.id === "btn-logout" || btn.id === "btn-drawer-logout";
         const isBackToDashboardBtn = btn.id === "btn-error-back";
+        const isDrawerToggleBtn = btn.id === "btn-toggle-drawer" || btn.id === "btn-close-drawer";
 
-        if (isDashboardBtn && !isLogoutBtn && !isBackToDashboardBtn) {
+        if (isDashboardBtn && !isLogoutBtn && !isBackToDashboardBtn && !isDrawerToggleBtn) {
           e.preventDefault();
           e.stopPropagation();
 
@@ -36,11 +37,97 @@ class DashboardController {
       }
     }, true);
 
+    // Drawer Toggle Events
+    const btnToggleDrawer = document.getElementById("btn-toggle-drawer");
+    const btnCloseDrawer = document.getElementById("btn-close-drawer");
+    const drawerOverlay = document.getElementById("drawer-overlay");
+    const sideDrawer = document.getElementById("side-drawer");
+
+    const toggleDrawer = (forceClose = false) => {
+      if (!sideDrawer) return;
+      if (forceClose || sideDrawer.classList.contains("active")) {
+        sideDrawer.classList.remove("active");
+        drawerOverlay.classList.remove("active");
+      } else {
+        sideDrawer.classList.add("active");
+        drawerOverlay.classList.add("active");
+      }
+    };
+
+    if (btnToggleDrawer) {
+      btnToggleDrawer.addEventListener("click", () => toggleDrawer());
+    }
+    if (btnCloseDrawer) {
+      btnCloseDrawer.addEventListener("click", () => toggleDrawer(true));
+    }
+    if (drawerOverlay) {
+      drawerOverlay.addEventListener("click", () => toggleDrawer(true));
+    }
+
+    // Drawer Logout
+    const btnDrawerLogout = document.getElementById("btn-drawer-logout");
+    const handleLogoutAction = () => {
+      if (window.dashboardController && window.dashboardController.telemetryInterval) {
+        clearInterval(window.dashboardController.telemetryInterval);
+      }
+      window.app.setSession(null);
+      window.app.routeToAuth(true);
+    };
+
+    if (btnDrawerLogout) {
+      btnDrawerLogout.addEventListener("click", () => {
+        toggleDrawer(true);
+        handleLogoutAction();
+      });
+    }
+
+    // Drawer Nav Links redirection
+    const drawerNavItems = document.querySelectorAll(".drawer-nav-item");
+    drawerNavItems.forEach(item => {
+      item.addEventListener("click", () => {
+        const target = item.getAttribute("data-target");
+        toggleDrawer(true);
+        
+        // Remove active class from all nav items
+        drawerNavItems.forEach(i => i.classList.remove("active-nav"));
+        item.classList.add("active-nav");
+
+        if (target === "dashboard") {
+          window.app.switchView("dashboard-section");
+        } else {
+          window.app.switchView("error-section");
+        }
+      });
+    });
+
+    // Card Management Slider limit display update
+    const cardLimitSlider = document.getElementById("card-limit-slider");
+    const cardLimitDisplay = document.getElementById("card-limit-display");
+    if (cardLimitSlider && cardLimitDisplay) {
+      cardLimitSlider.addEventListener("input", (e) => {
+        const val = parseInt(e.target.value);
+        cardLimitDisplay.textContent = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
+      });
+    }
+
+    // System Settings Timeout slider display update
+    const systemTimeoutSlider = document.getElementById("system-timeout-slider");
+    const systemTimeoutDisplay = document.getElementById("system-timeout-display");
+    if (systemTimeoutSlider && systemTimeoutDisplay) {
+      systemTimeoutSlider.addEventListener("input", (e) => {
+        systemTimeoutDisplay.textContent = `${e.target.value} Min`;
+      });
+    }
+
     // Back to Portal Button on 404 page
     const btnErrorBack = document.getElementById("btn-error-back");
     if (btnErrorBack) {
       btnErrorBack.addEventListener("click", () => {
         window.app.switchView("dashboard-section");
+        // Reset active nav item to overview
+        drawerNavItems.forEach(i => i.classList.remove("active-nav"));
+        const overviewItem = document.querySelector(".drawer-nav-item[data-target='dashboard']");
+        if (overviewItem) overviewItem.classList.add("active-nav");
       });
     }
 
@@ -48,8 +135,7 @@ class DashboardController {
     const btnLogout = document.getElementById("btn-logout");
     if (btnLogout) {
       btnLogout.addEventListener("click", () => {
-        window.app.setSession(null);
-        window.app.routeToAuth(true);
+        handleLogoutAction();
       });
     }
 
@@ -120,6 +206,24 @@ class DashboardController {
     const roleBadge = document.getElementById("nav-role-badge");
     roleBadge.textContent = user.role === "owner" ? "Platform Owner" : "Customer";
 
+    // Set side drawer profile details
+    const drawerUsername = document.getElementById("drawer-username");
+    const drawerAvatar = document.getElementById("drawer-avatar");
+    const drawerRoleBadge = document.getElementById("drawer-role-badge");
+
+    if (drawerUsername) drawerUsername.textContent = user.name;
+    if (drawerAvatar) drawerAvatar.src = user.avatar;
+    if (drawerRoleBadge) {
+      drawerRoleBadge.textContent = user.role === "owner" ? "Platform Owner" : "Customer";
+      if (user.role === "owner") {
+        drawerRoleBadge.style.background = "rgba(251, 191, 36, 0.15)";
+        drawerRoleBadge.style.color = "var(--accent-primary)";
+      } else {
+        drawerRoleBadge.style.background = "rgba(99, 102, 241, 0.15)";
+        drawerRoleBadge.style.color = "var(--accent-primary)";
+      }
+    }
+
     // Switch view sections
     const custView = document.getElementById("customer-dashboard-view");
     const ownView = document.getElementById("owner-dashboard-view");
@@ -163,6 +267,9 @@ class DashboardController {
 
     // 4. Render Customer Analytics Chart
     this.renderCustomerChart();
+
+    // 5. Render Quick Transfer Contacts
+    this.renderCustomerContacts();
   }
 
   renderCustomerTransactions() {
@@ -401,6 +508,12 @@ class DashboardController {
 
     // 4. Render Owner Chart
     this.renderOwnerChart();
+
+    // 5. Populate Admin security audit logs
+    this.renderOwnerSecurityLogs();
+
+    // 6. Init Node Telemetry metrics loop
+    this.initOwnerTelemetry();
   }
 
   renderCustomerTable(customers) {
@@ -418,7 +531,7 @@ class DashboardController {
 
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td>
+        <td data-label="Client Account">
           <div class="table-user">
             <img src="${cust.avatar}" alt="User Profile">
             <div>
@@ -427,14 +540,14 @@ class DashboardController {
             </div>
           </div>
         </td>
-        <td><strong>${formattedBalance}</strong></td>
-        <td>
+        <td data-label="Available Balance"><strong>${formattedBalance}</strong></td>
+        <td data-label="Account Status">
           <span class="table-status status-${cust.status}">
             <span class="status-indicator ${isFrozen ? 'red' : 'green'}"></span>
             ${cust.status}
           </span>
         </td>
-        <td style="text-align: right">
+        <td data-label="Administrative Action" style="text-align: right">
           <button class="btn-small ${isFrozen ? 'btn-small-success' : 'btn-small-danger'}" data-email="${cust.email}">
             ${isFrozen ? 'Unfreeze Account' : 'Freeze Account'}
           </button>
@@ -604,6 +717,111 @@ class DashboardController {
           }
         }
       }
+    });
+  }
+
+  renderCustomerContacts() {
+    const container = document.getElementById("quick-contacts-container");
+    if (!container) return;
+
+    container.innerHTML = "";
+    
+    // Filter users list to get other customer accounts
+    const contacts = window.app.users.filter(u => u.email !== window.app.currentUser.email && u.role === "customer");
+    
+    if (contacts.length === 0) {
+      container.innerHTML = `<div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; width: 100%;">No contacts found</div>`;
+      return;
+    }
+
+    contacts.forEach(contact => {
+      const node = document.createElement("div");
+      node.className = "contact-node";
+      node.innerHTML = `
+        <img class="contact-avatar" src="${contact.avatar}" alt="${contact.name}">
+        <span class="contact-name">${contact.name.split(" ")[0]}</span>
+      `;
+      
+      node.addEventListener("click", () => {
+        const recipientField = document.getElementById("transfer-recipient");
+        const amountField = document.getElementById("transfer-amount");
+        if (recipientField && amountField) {
+          recipientField.value = contact.email;
+          amountField.focus();
+        }
+      });
+      
+      container.appendChild(node);
+    });
+  }
+
+  initOwnerTelemetry() {
+    if (this.telemetryInterval) {
+      clearInterval(this.telemetryInterval);
+    }
+
+    const cpuVal = document.getElementById("telemetry-cpu-val");
+    const cpuBar = document.getElementById("telemetry-cpu-bar");
+    const latencyVal = document.getElementById("telemetry-latency-val");
+    const latencyBar = document.getElementById("telemetry-latency-bar");
+    const memVal = document.getElementById("telemetry-mem-val");
+    const memBar = document.getElementById("telemetry-mem-bar");
+
+    const updateMetrics = () => {
+      if (!cpuVal) return;
+      
+      // CPU Load: fluctuate 15% - 35%
+      const cpu = Math.floor(15 + Math.random() * 20);
+      cpuVal.textContent = `${cpu}%`;
+      cpuBar.style.width = `${cpu}%`;
+      if (cpu > 30) {
+        cpuBar.style.background = "linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)";
+      } else {
+        cpuBar.style.background = "var(--success-gradient)";
+      }
+
+      // Latency: fluctuate 30ms - 55ms
+      const lat = Math.floor(30 + Math.random() * 25);
+      latencyVal.textContent = `${lat}ms`;
+      latencyBar.style.width = `${lat}%`;
+      if (lat > 50) {
+        latencyBar.style.background = "linear-gradient(135deg, #f43f5e 0%, #fb7185 100%)";
+      } else {
+        latencyBar.style.background = "var(--success-gradient)";
+      }
+
+      // Memory: fluctuate 65% - 72%
+      const mem = Math.floor(65 + Math.random() * 7);
+      memVal.textContent = `${mem}%`;
+      memBar.style.width = `${mem}%`;
+    };
+
+    updateMetrics();
+    this.telemetryInterval = setInterval(updateMetrics, 3000);
+  }
+
+  renderOwnerSecurityLogs() {
+    const container = document.getElementById("owner-audit-log-container");
+    if (!container) return;
+
+    const logs = [
+      { time: "15:46:12", desc: "System overseer node gateway synced successfully." },
+      { time: "14:20:01", desc: "Double-factor keychain authentication token verified." },
+      { time: "11:30:15", desc: "Automated incremental backup of client database generated." },
+      { time: "09:15:42", desc: "Client account status query request cleared." },
+      { time: "08:00:00", desc: "Daily AUM ledger balancing and cache clearing executed." },
+      { time: "06:12:05", desc: "Intrusion prevention scan finished - 0 warnings." }
+    ];
+
+    container.innerHTML = "";
+    logs.forEach(log => {
+      const item = document.createElement("div");
+      item.className = "audit-item";
+      item.innerHTML = `
+        <span class="audit-time">[ ${log.time} ]</span>
+        <span class="audit-desc">${log.desc}</span>
+      `;
+      container.appendChild(item);
     });
   }
 }

@@ -217,6 +217,13 @@
       <!-- Top Navigation bar -->
       <nav class="navbar">
         <div class="nav-brand" style="display: flex; align-items: center; gap: 0.5rem;">
+          <button id="btn-toggle-drawer" class="btn-icon" title="Toggle Menu" style="margin-right: 0.25rem;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
           <img src="logo.jpeg" alt="STACKLY" style="height: 32px; object-fit: contain; vertical-align: middle;">
           <span style="font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: 1.25rem; letter-spacing: 1px; color: var(--text-primary); margin-left: 0.25rem;">PORTAL</span>
         </div>
@@ -280,6 +287,22 @@
                     Authorized signature only. Account Reference: #839.
                   </div>
                 </div>
+              </div>
+            </div>
+            
+            <!-- Frequent Contacts widget -->
+            <div class="glass-panel panel-padding dashboard-card-hover">
+              <h3 class="widget-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                Frequent Nodes
+              </h3>
+              <div class="contacts-row" id="quick-contacts-container">
+                <!-- Dynamically populated in JS -->
               </div>
             </div>
 
@@ -353,6 +376,45 @@
                 </div>
 
               </div>
+            <!-- Asset Allocation widget -->
+            <div class="glass-panel panel-padding dashboard-card-hover">
+              <h3 class="widget-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="20" x2="18" y2="10"></line>
+                  <line x1="12" y1="20" x2="12" y2="4"></line>
+                  <line x1="6" y1="20" x2="6" y2="14"></line>
+                </svg>
+                Asset Allocations
+              </h3>
+              <div class="allocation-list">
+                <div class="alloc-item">
+                  <div class="alloc-meta">
+                    <span class="alloc-name">Cash Vaults</span>
+                    <span class="alloc-percent">65%</span>
+                  </div>
+                  <div class="alloc-bar-wrapper">
+                    <div class="alloc-bar" style="width: 65%; background: var(--success-gradient);"></div>
+                  </div>
+                </div>
+                <div class="alloc-item">
+                  <div class="alloc-meta">
+                    <span class="alloc-name">Digital Crypto Nodes</span>
+                    <span class="alloc-percent">25%</span>
+                  </div>
+                  <div class="alloc-bar-wrapper">
+                    <div class="alloc-bar" style="width: 25%; background: var(--accent-gradient);"></div>
+                  </div>
+                </div>
+                <div class="alloc-item">
+                  <div class="alloc-meta">
+                    <span class="alloc-name">Bonds & Equities</span>
+                    <span class="alloc-percent">10%</span>
+                  </div>
+                  <div class="alloc-bar-wrapper">
+                    <div class="alloc-bar" style="width: 10%; background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);"></div>
+                  </div>
+                </div>
+              </div>
             </div>
 
           </aside>
@@ -378,6 +440,48 @@
                 <button class="btn-outline" id="btn-scroll-transfers">
                   <span>Transfer Records</span>
                 </button>
+              </div>
+            </div>
+
+            <!-- Card Management widget -->
+            <div class="glass-panel panel-padding dashboard-card-hover card-mgmt-panel">
+              <h3 class="widget-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                  <line x1="2" y1="10" x2="22" y2="10"></line>
+                </svg>
+                Card Control Node
+              </h3>
+              <div class="card-mgmt-content">
+                <div class="mgmt-row">
+                  <div class="mgmt-info">
+                    <span class="mgmt-label">Freeze Credit Card</span>
+                    <span class="mgmt-sub">Restrict all administrative movements</span>
+                  </div>
+                  <label class="switch-control">
+                    <input type="checkbox" id="card-freeze-toggle">
+                    <span class="switch-slider"></span>
+                  </label>
+                </div>
+                
+                <div class="mgmt-row">
+                  <div class="mgmt-info">
+                    <span class="mgmt-label">International Ledger Access</span>
+                    <span class="mgmt-sub">Permit node cross-border sync</span>
+                  </div>
+                  <label class="switch-control">
+                    <input type="checkbox" id="card-intl-toggle" checked>
+                    <span class="switch-slider"></span>
+                  </label>
+                </div>
+
+                <div class="mgmt-slider-group">
+                  <div class="mgmt-slider-header">
+                    <span class="mgmt-label">Daily Vault Limit</span>
+                    <span class="mgmt-limit-value" id="card-limit-display">$5,000</span>
+                  </div>
+                  <input type="range" id="card-limit-slider" min="1000" max="25000" step="500" value="5000" class="premium-slider">
+                </div>
               </div>
             </div>
 
@@ -523,9 +627,107 @@
                 </h3>
                 <div class="chart-container" style="height: 220px">
                   <canvas id="owner-analytics-chart"></canvas>
+              <!-- System Telemetry metrics panel -->
+              <div class="glass-panel panel-padding">
+                <h3 class="widget-title">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="22" y1="12" x2="18" y2="12"></line>
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                  </svg>
+                  Node Telemetry System
+                </h3>
+                <div class="telemetry-metrics">
+                  <div class="telemetry-item">
+                    <div class="telemetry-meta">
+                      <span>Gateway CPU Load</span>
+                      <span id="telemetry-cpu-val">24%</span>
+                    </div>
+                    <div class="telemetry-bar-wrapper">
+                      <div id="telemetry-cpu-bar" class="telemetry-bar" style="width: 24%; background: var(--success-gradient);"></div>
+                    </div>
+                  </div>
+                  <div class="telemetry-item">
+                    <div class="telemetry-meta">
+                      <span>API Sync Latency</span>
+                      <span id="telemetry-latency-val">42ms</span>
+                    </div>
+                    <div class="telemetry-bar-wrapper">
+                      <div id="telemetry-latency-bar" class="telemetry-bar" style="width: 14%; background: var(--success-gradient);"></div>
+                    </div>
+                  </div>
+                  <div class="telemetry-item">
+                    <div class="telemetry-meta">
+                      <span>Ledger Memory Cache</span>
+                      <span id="telemetry-mem-val">68%</span>
+                    </div>
+                    <div class="telemetry-bar-wrapper">
+                      <div id="telemetry-mem-bar" class="telemetry-bar" style="width: 68%; background: var(--accent-gradient);"></div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
+            </div>
+
+          </div>
+
+          <!-- Additional Administrative panels -->
+          <div class="owner-extra-workspace">
+            
+            <!-- Admin Audit Ledger -->
+            <div class="glass-panel panel-padding">
+              <h3 class="widget-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
+                  <path d="M12 6v6l4 2"></path>
+                </svg>
+                Node Security Audit Ledger
+              </h3>
+              <div class="audit-list" id="owner-audit-log-container">
+                <!-- Dynamically populated in JS -->
+              </div>
+            </div>
+
+            <!-- Platform Settings Console -->
+            <div class="glass-panel panel-padding">
+              <h3 class="widget-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="3"></circle>
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+                Overseer Settings Console
+              </h3>
+              <div class="card-mgmt-content">
+                <div class="mgmt-row">
+                  <div class="mgmt-info">
+                    <span class="mgmt-label">System Maintenance Mode</span>
+                    <span class="mgmt-sub">Restrict public ledger transaction submittals</span>
+                  </div>
+                  <label class="switch-control">
+                    <input type="checkbox" id="system-maintenance-toggle">
+                    <span class="switch-slider"></span>
+                  </label>
+                </div>
+                
+                <div class="mgmt-row">
+                  <div class="mgmt-info">
+                    <span class="mgmt-label">Double-Factor Sign In</span>
+                    <span class="mgmt-sub">Enforce strict login verification keychains</span>
+                  </div>
+                  <label class="switch-control">
+                    <input type="checkbox" id="system-2fa-toggle" checked>
+                    <span class="switch-slider"></span>
+                  </label>
+                </div>
+
+                <div class="mgmt-slider-group">
+                  <div class="mgmt-slider-header">
+                    <span class="mgmt-label">Auto-Logoff Inactivity Timer</span>
+                    <span class="mgmt-limit-value" id="system-timeout-display">15 Min</span>
+                  </div>
+                  <input type="range" id="system-timeout-slider" min="5" max="60" step="5" value="15" class="premium-slider">
+                </div>
+              </div>
             </div>
 
           </div>
@@ -563,6 +765,67 @@
       </div>
     </section>
 
+  </div>
+
+  <!-- ==========================================
+       6. Side Navigation Drawer & Overlay
+       ========================================== -->
+  <div id="drawer-overlay" class="drawer-overlay"></div>
+  <div id="side-drawer" class="side-drawer glass-panel">
+    <div class="drawer-header">
+      <div class="drawer-brand">
+        <img src="logo.jpeg" alt="STACKLY" style="height: 32px; object-fit: contain; vertical-align: middle;">
+        <span style="font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: 1.1rem; letter-spacing: 1px; color: var(--text-primary); margin-left: 0.25rem;">PORTAL</span>
+      </div>
+      <button id="btn-close-drawer" class="btn-icon" title="Close Menu">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <div class="drawer-user-profile">
+      <img id="drawer-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&auto=format&fit=crop&q=60" alt="Avatar">
+      <div class="drawer-user-details">
+        <span id="drawer-username">Alex Mercer</span>
+        <span id="drawer-role-badge" class="role-badge">Customer</span>
+      </div>
+    </div>
+
+    <nav class="drawer-nav">
+      <button class="drawer-nav-item active-nav" data-target="dashboard">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        <span>Overview Portal</span>
+      </button>
+      <button class="drawer-nav-item" data-target="vaults">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+        <span>Secure Vaults</span>
+      </button>
+      <button class="drawer-nav-item" data-target="ledgers">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        <span>Ledger Logs</span>
+      </button>
+      <button class="drawer-nav-item" data-target="telemetry">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+        <span>Network Status</span>
+      </button>
+      <button class="drawer-nav-item" data-target="support">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        <span>Support Center</span>
+      </button>
+      <button class="drawer-nav-item" data-target="settings">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        <span>Node Settings</span>
+      </button>
+    </nav>
+
+    <div class="drawer-footer">
+      <button id="btn-drawer-logout" class="btn-outline" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"></path></svg>
+        <span>Sign Out</span>
+      </button>
+    </div>
   </div>
 
   <!-- ==========================================
