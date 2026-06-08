@@ -123,11 +123,15 @@ class DashboardController {
     const btnErrorBack = document.getElementById("btn-error-back");
     if (btnErrorBack) {
       btnErrorBack.addEventListener("click", () => {
-        window.app.switchView("dashboard-section");
-        // Reset active nav item to overview
-        drawerNavItems.forEach(i => i.classList.remove("active-nav"));
-        const overviewItem = document.querySelector(".drawer-nav-item[data-target='dashboard']");
-        if (overviewItem) overviewItem.classList.add("active-nav");
+        if (window.app && window.app.currentUser) {
+          window.app.routeToDashboard(false);
+          // Reset active nav item to overview
+          drawerNavItems.forEach(i => i.classList.remove("active-nav"));
+          const overviewItem = document.querySelector(".drawer-nav-item[data-target='dashboard']");
+          if (overviewItem) overviewItem.classList.add("active-nav");
+        } else if (window.app) {
+          window.app.routeToAuth(false);
+        }
       });
     }
 

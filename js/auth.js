@@ -14,6 +14,7 @@ class AuthController {
     
     this.linkToRegister = document.getElementById("link-to-register");
     this.linkToLogin = document.getElementById("link-to-login");
+    this.linkForgotPassword = document.getElementById("link-forgot-password");
     this.subtitleText = document.getElementById("auth-subtitle-text");
 
     // Role elements
@@ -24,6 +25,12 @@ class AuthController {
     // Form toggle events
     this.linkToRegister.addEventListener("click", () => this.toggleForm("signup"));
     this.linkToLogin.addEventListener("click", () => this.toggleForm("login"));
+    
+    if (this.linkForgotPassword) {
+      this.linkForgotPassword.addEventListener("click", () => {
+        window.app.switchView("error-section");
+      });
+    }
 
     // Form submit events
     this.loginForm.addEventListener("submit", (e) => this.handleLogin(e));
