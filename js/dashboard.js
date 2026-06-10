@@ -1,834 +1,1108 @@
-/**
- * Financity Dashboard Controller
- */
+/* =======================================================
+   APEXPULSE PLATFORM CORE DASHBOARD ENGINE (js/dashboard.js)
+   ======================================================= */
 
-class DashboardController {
-  constructor() {
-    this.customerChart = null;
-    this.ownerChart = null;
-    
-    this.initGlobalEvents();
-  }
+window.dashboardApp = (() => {
+  let userRole = null;
+  let activeUser = null;
+  let charts = {};
 
-  // Bind global navigation and modal event listeners
-  initGlobalEvents() {
-    // Intercept all button clicks in dashboards except logout/drawer toggle and redirect to 404 page
-    document.addEventListener("click", (e) => {
-      const btn = e.target.closest("button");
-      if (btn) {
-        const isDashboardBtn = btn.closest("#dashboard-section") || btn.closest("#deposit-modal");
-        const isLogoutBtn = btn.id === "btn-logout" || btn.id === "btn-drawer-logout";
-        const isBackToDashboardBtn = btn.id === "btn-error-back";
-        const isDrawerToggleBtn = btn.id === "btn-toggle-drawer" || btn.id === "btn-close-drawer";
+  // Color constants for Chart.js
+  const COLORS = {
+    primary: '#1b056a',
+    primaryLight: '#031561',
+    primaryGlow: 'rgba(27, 5, 106, 0.1)',
+    blue: '#3B82F6',
+    blueLight: '#60A5FA',
+    blueGlow: 'rgba(59, 130, 246, 0.1)',
+    green: '#10B981',
+    yellow: '#F59E0B',
+    purple: '#8B5CF6',
+    textDark: '#64748B',
+    textBlack: '#0F172A',
+    gridColor: '#E2E8F0',
+    darkGridColor: '#334155'
+  };
 
-        if (isDashboardBtn && !isLogoutBtn && !isBackToDashboardBtn && !isDrawerToggleBtn) {
-          e.preventDefault();
-          e.stopPropagation();
+  // --- Seed Data Store ---
+  const MOCK_DATA = {
+    members: [
+      { name: 'Sarah Connor', email: 'sarah@resistance.org', phone: '+1 (555) 304-9844', role: 'Athlete', status: 'active', date: '2026-05-12' },
+      { name: 'Bruce Wayne', email: 'bruce@gotham.net', phone: '+1 (555) 777-1939', role: 'Athlete', status: 'active', date: '2026-05-20' },
+      { name: 'Diana Prince', email: 'diana@themyscira.gov', phone: '+1 (555) 888-0001', role: 'Athlete', status: 'active', date: '2026-05-24' },
+      { name: 'Clark Kent', email: 'clark@dailyplanet.com', phone: '+1 (555) 902-8347', role: 'Athlete', status: 'pending', date: '2026-06-01' },
+      { name: 'Barry Allen', email: 'barry@centralcity.pd', phone: '+1 (555) 201-9874', role: 'Athlete', status: 'active', date: '2026-06-02' },
+      { name: 'Tony Stark', email: 'tony@starkintl.com', phone: '+1 (555) 300-4000', role: 'Athlete', status: 'inactive', date: '2026-04-15' }
+    ],
+    trainers: [
+      { name: 'Coach Carter', specialty: 'Basketball & Tactical Cardio', image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=150&q=80', activeCount: '14 Athletes' },
+      { name: 'Coach Serena', specialty: 'Tennis Endurance & Agility', image: 'https://images.unsplash.com/photo-1548690312-e3b507d8c110?auto=format&fit=crop&w=150&q=80', activeCount: '22 Athletes' },
+      { name: 'Coach Arnold', specialty: 'Heavy Hypertrophy & Powerlifting', image: 'https://images.unsplash.com/photo-1567013127542-490d757e51fc?auto=format&fit=crop&w=150&q=80', activeCount: '19 Athletes' }
+    ],
+    programs: [
+      { title: 'Tactical Agility Protocol', type: 'Cardio Stream', difficulty: 4, duration: '45 min', calories: '550 kcal', level: 'Intermediate', image: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=300&q=80' },
+      { title: 'Iron Hypertrophy Phase 3', type: 'Weight Lifting', difficulty: 5, duration: '75 min', calories: '600 kcal', level: 'Advanced', image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=300&q=80' },
+      { title: 'Aerobic Threshold Build', type: 'Cardio Speed', difficulty: 3, duration: '60 min', calories: '480 kcal', level: 'Intermediate', image: 'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?auto=format&fit=crop&w=300&q=80' }
+    ],
+    userActivities: [
+      { date: '2026-06-03 08:30', type: 'Speed Sprint Drill', duration: 45, burn: '520 kcal', complexity: 'Intermediate' },
+      { date: '2026-06-02 17:15', type: 'Hypertrophy Powerlifting', duration: 60, burn: '480 kcal', complexity: 'Advanced' },
+      { date: '2026-05-31 09:00', type: 'Aerobic Threshold Swim', duration: 50, burn: '440 kcal', complexity: 'Intermediate' }
+    ],
+    meals: [
+      { time: '08:15', name: 'High-Protein Shake + Oats', carbs: '65g', prot: '40g', fat: '12g', cals: '520 kcal' },
+      { time: '13:00', name: 'Grilled Chicken Breasts + Jasmine Rice', carbs: '85g', prot: '55g', fat: '10g', cals: '650 kcal' },
+      { time: '16:30', name: 'Mixed Almonds + Protein Bar', carbs: '25g', prot: '20g', fat: '18g', cals: '340 kcal' },
+      { time: '19:45', name: 'Baked Salmon Steak + Steamed Broccoli', carbs: '45g', prot: '25g', fat: '28g', cals: '510 kcal' }
+    ],
+    achievements: [
+      { icon: 'fa-solid fa-trophy', title: 'Centurion Burner', desc: 'Burn over 1,000 kcal in a single day.', date: 'May 28, 2026' },
+      { icon: 'fa-solid fa-fire', title: 'Apex Streak', desc: 'Achieved a 7-day training consistency.', date: 'June 01, 2026' },
+      { icon: 'fa-solid fa-dumbbell', title: 'Heavy Lifter Medal', desc: 'Successfully tracked 15 strength sessions.', date: 'June 03, 2026' }
+    ],
+    notifications: [
+      { icon: 'fa-user-plus', color: 'orange', title: 'New athlete enrolled', desc: 'Barry Allen registered from Central City.', time: '5 mins ago' },
+      { icon: 'fa-heart-pulse', color: 'blue', title: 'Biometrics Threshold Synced', desc: 'Athlete Sarah Connor exceeded target rate.', time: '1 hour ago' },
+      { icon: 'fa-circle-check', color: 'green', title: 'Invoice verified', desc: 'Subscription renewal from Coach serena completed.', time: '3 hours ago' },
+      { icon: 'fa-triangle-exclamation', color: 'yellow', title: 'System telemetry reboot', desc: 'Core wearable cloud api connection refreshed.', time: 'Yesterday' }
+    ]
+  };
 
-          // Hide active modal if open
-          const activeModal = document.querySelector(".modal-overlay.active-modal");
-          if (activeModal) {
-            activeModal.classList.remove("active-modal");
-          }
-
-          // Switch to 404 error page view
-          window.app.switchView("error-section");
-        }
-      }
-    }, true);
-
-    // Drawer Toggle Events
-    const btnToggleDrawer = document.getElementById("btn-toggle-drawer");
-    const btnCloseDrawer = document.getElementById("btn-close-drawer");
-    const drawerOverlay = document.getElementById("drawer-overlay");
-    const sideDrawer = document.getElementById("side-drawer");
-
-    const toggleDrawer = (forceClose = false) => {
-      if (!sideDrawer) return;
-      if (forceClose || sideDrawer.classList.contains("active")) {
-        sideDrawer.classList.remove("active");
-        drawerOverlay.classList.remove("active");
-      } else {
-        sideDrawer.classList.add("active");
-        drawerOverlay.classList.add("active");
-      }
-    };
-
-    if (btnToggleDrawer) {
-      btnToggleDrawer.addEventListener("click", () => toggleDrawer());
+  // --- Initialize Storage ---
+  const initLocalStorageData = () => {
+    if (!localStorage.getItem('apex_members')) {
+      localStorage.setItem('apex_members', JSON.stringify(MOCK_DATA.members));
     }
-    if (btnCloseDrawer) {
-      btnCloseDrawer.addEventListener("click", () => toggleDrawer(true));
+    if (!localStorage.getItem('apex_trainers')) {
+      localStorage.setItem('apex_trainers', JSON.stringify(MOCK_DATA.trainers));
     }
-    if (drawerOverlay) {
-      drawerOverlay.addEventListener("click", () => toggleDrawer(true));
+    if (!localStorage.getItem('apex_programs')) {
+      localStorage.setItem('apex_programs', JSON.stringify(MOCK_DATA.programs));
     }
-
-    // Drawer Logout
-    const btnDrawerLogout = document.getElementById("btn-drawer-logout");
-    const handleLogoutAction = () => {
-      if (window.dashboardController && window.dashboardController.telemetryInterval) {
-        clearInterval(window.dashboardController.telemetryInterval);
-      }
-      window.app.setSession(null);
-      window.app.routeToAuth(true);
-    };
-
-    if (btnDrawerLogout) {
-      btnDrawerLogout.addEventListener("click", () => {
-        toggleDrawer(true);
-        handleLogoutAction();
-      });
+    if (!localStorage.getItem('apex_user_activities')) {
+      localStorage.setItem('apex_user_activities', JSON.stringify(MOCK_DATA.userActivities));
     }
+    if (!localStorage.getItem('apex_user_meals')) {
+      localStorage.setItem('apex_user_meals', JSON.stringify(MOCK_DATA.meals));
+    }
+    const storedAch = localStorage.getItem('apex_achievements');
+    if (!storedAch || storedAch.includes('🏆') || storedAch.includes('🔥') || storedAch.includes('🏋')) {
+      localStorage.setItem('apex_achievements', JSON.stringify(MOCK_DATA.achievements));
+    }
+    if (!localStorage.getItem('apex_notifications')) {
+      localStorage.setItem('apex_notifications', JSON.stringify(MOCK_DATA.notifications));
+    }
+  };
 
-    // Drawer Nav Links redirection
-    const drawerNavItems = document.querySelectorAll(".drawer-nav-item");
-    drawerNavItems.forEach(item => {
-      item.addEventListener("click", () => {
-        const target = item.getAttribute("data-target");
-        toggleDrawer(true);
-        
-        // Remove active class from all nav items
-        drawerNavItems.forEach(i => i.classList.remove("active-nav"));
-        item.classList.add("active-nav");
+  // --- Display Visual Toast Notifications ---
+  const spawnToast = (title, message, type = 'success') => {};
 
-        if (target === "dashboard") {
-          window.app.switchView("dashboard-section");
+  // --- Count-up Stat Numbers Animation ---
+  const animateCountUp = (elementId, targetValue, duration = 1.5, format = '') => {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+
+    let obj = { val: 0 };
+    gsap.to(obj, {
+      val: targetValue,
+      duration: duration,
+      ease: 'power2.out',
+      onUpdate: () => {
+        if (format === 'cals') {
+          el.textContent = Math.floor(obj.val).toLocaleString();
+        } else if (format === 'percent') {
+          el.textContent = Math.floor(obj.val) + '%';
+        } else if (format === 'currency') {
+          el.textContent = '$' + Math.floor(obj.val).toLocaleString();
         } else {
-          window.app.switchView("error-section");
-        }
-      });
-    });
-
-    // Card Management Slider limit display update
-    const cardLimitSlider = document.getElementById("card-limit-slider");
-    const cardLimitDisplay = document.getElementById("card-limit-display");
-    if (cardLimitSlider && cardLimitDisplay) {
-      cardLimitSlider.addEventListener("input", (e) => {
-        const val = parseInt(e.target.value);
-        cardLimitDisplay.textContent = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
-      });
-    }
-
-    // System Settings Timeout slider display update
-    const systemTimeoutSlider = document.getElementById("system-timeout-slider");
-    const systemTimeoutDisplay = document.getElementById("system-timeout-display");
-    if (systemTimeoutSlider && systemTimeoutDisplay) {
-      systemTimeoutSlider.addEventListener("input", (e) => {
-        systemTimeoutDisplay.textContent = `${e.target.value} Min`;
-      });
-    }
-
-    // Back to Portal Button on 404 page
-    const btnErrorBack = document.getElementById("btn-error-back");
-    if (btnErrorBack) {
-      btnErrorBack.addEventListener("click", () => {
-        if (window.app && window.app.currentUser) {
-          window.app.routeToDashboard(false);
-          // Reset active nav item to overview
-          drawerNavItems.forEach(i => i.classList.remove("active-nav"));
-          const overviewItem = document.querySelector(".drawer-nav-item[data-target='dashboard']");
-          if (overviewItem) overviewItem.classList.add("active-nav");
-        } else if (window.app) {
-          window.app.routeToAuth(false);
-        }
-      });
-    }
-
-    // Logout Button
-    const btnLogout = document.getElementById("btn-logout");
-    if (btnLogout) {
-      btnLogout.addEventListener("click", () => {
-        handleLogoutAction();
-      });
-    }
-
-    // Deposit Modal Events
-    const btnOpenDeposit = document.getElementById("btn-deposit-modal");
-    const btnCloseDeposit = document.getElementById("btn-close-deposit");
-    const depositModal = document.getElementById("deposit-modal");
-    const depositForm = document.getElementById("deposit-form");
-
-    if (btnOpenDeposit && depositModal) {
-      btnOpenDeposit.addEventListener("click", () => {
-        depositModal.classList.add("active-modal");
-      });
-    }
-
-    if (btnCloseDeposit && depositModal) {
-      btnCloseDeposit.addEventListener("click", () => {
-        depositModal.classList.remove("active-modal");
-        depositForm.reset();
-      });
-    }
-
-    if (depositForm) {
-      depositForm.addEventListener("submit", (e) => this.handleDepositSubmit(e));
-    }
-
-    // Scroll Shortcut
-    const btnScrollTx = document.getElementById("btn-scroll-transfers");
-    if (btnScrollTx) {
-      btnScrollTx.addEventListener("click", () => {
-        const anchor = document.getElementById("transfer-records-anchor");
-        if (anchor) {
-          anchor.scrollIntoView({ behavior: "smooth" });
-        }
-      });
-    }
-
-    // Credit Card Flipping
-    const ccPerspective = document.getElementById("credit-card-perspective");
-    if (ccPerspective) {
-      ccPerspective.addEventListener("click", () => {
-        ccPerspective.classList.toggle("flipped");
-      });
-    }
-
-    // Transfer Form Submission
-    const transferForm = document.getElementById("transfer-funds-form");
-    if (transferForm) {
-      transferForm.addEventListener("submit", (e) => this.handleTransferSubmit(e));
-    }
-
-    // Owner Search Input
-    const ownerSearch = document.getElementById("owner-user-search");
-    if (ownerSearch) {
-      ownerSearch.addEventListener("input", (e) => this.handleOwnerUserSearch(e.target.value));
-    }
-  }
-
-  // Orchestrate Dashboard Load
-  initDashboard() {
-    const user = window.app.currentUser;
-    if (!user) return;
-
-    // Set common navigation details
-    document.getElementById("nav-username").textContent = user.name;
-    document.getElementById("nav-avatar").src = user.avatar;
-    
-    const roleBadge = document.getElementById("nav-role-badge");
-    roleBadge.textContent = user.role === "owner" ? "Platform Owner" : "Customer";
-
-    // Set side drawer profile details
-    const drawerUsername = document.getElementById("drawer-username");
-    const drawerAvatar = document.getElementById("drawer-avatar");
-    const drawerRoleBadge = document.getElementById("drawer-role-badge");
-
-    if (drawerUsername) drawerUsername.textContent = user.name;
-    if (drawerAvatar) drawerAvatar.src = user.avatar;
-    if (drawerRoleBadge) {
-      drawerRoleBadge.textContent = user.role === "owner" ? "Platform Owner" : "Customer";
-      if (user.role === "owner") {
-        drawerRoleBadge.style.background = "rgba(251, 191, 36, 0.15)";
-        drawerRoleBadge.style.color = "var(--accent-primary)";
-      } else {
-        drawerRoleBadge.style.background = "rgba(99, 102, 241, 0.15)";
-        drawerRoleBadge.style.color = "var(--accent-primary)";
-      }
-    }
-
-    // Switch view sections
-    const custView = document.getElementById("customer-dashboard-view");
-    const ownView = document.getElementById("owner-dashboard-view");
-
-    if (user.role === "owner") {
-      custView.classList.add("hidden-section");
-      ownView.classList.remove("hidden-section");
-      this.renderOwnerDashboard();
-    } else {
-      ownView.classList.add("hidden-section");
-      custView.classList.remove("hidden-section");
-      this.renderCustomerDashboard();
-    }
-  }
-
-  /* ==========================================
-     Customer Dashboard Implementation
-     ========================================== */
-  renderCustomerDashboard() {
-    const user = window.app.currentUser;
-    
-    // 1. Update card details
-    document.getElementById("card-number-display").textContent = user.cardNumber;
-    document.getElementById("card-holder-name").textContent = user.name.toUpperCase();
-    
-    // 2. Set balances
-    const formattedBalance = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(user.balance);
-    const balanceElem = document.getElementById("customer-total-balance");
-    balanceElem.textContent = formattedBalance;
-
-    // Check if account is frozen and apply layout style warnings
-    if (user.status === "frozen") {
-      balanceElem.style.color = "var(--danger)";
-      balanceElem.innerHTML = `${formattedBalance} <span style="font-size: 1rem; display:block; color:var(--danger)">[ACCOUNT FROZEN]</span>`;
-    } else {
-      balanceElem.style.color = "";
-    }
-
-    // 3. Render Transaction List
-    this.renderCustomerTransactions();
-
-    // 4. Render Customer Analytics Chart
-    this.renderCustomerChart();
-
-    // 5. Render Quick Transfer Contacts
-    this.renderCustomerContacts();
-  }
-
-  renderCustomerTransactions() {
-    const user = window.app.currentUser;
-    const txContainer = document.getElementById("customer-tx-list");
-    txContainer.innerHTML = "";
-
-    // Filter relevant transactions (where user is sender or recipient)
-    const userTx = window.app.transactions
-      .filter(tx => tx.sender === user.email || tx.recipient === user.email)
-      .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
-    if (userTx.length === 0) {
-      txContainer.innerHTML = `<div style="text-align:center; padding: 2rem 0; color:var(--text-muted)">No transactions found for this account.</div>`;
-      return;
-    }
-
-    userTx.forEach(tx => {
-      const isSender = tx.sender === user.email;
-      
-      // Determine display title
-      let displayTitle = "";
-      if (tx.sender === "Capital Ingress") {
-        displayTitle = "Cash Deposit";
-      } else if (isSender) {
-        // Find recipient user name
-        const recUser = window.app.users.find(u => u.email === tx.recipient);
-        displayTitle = `Transfer to ${recUser ? recUser.name : tx.recipient}`;
-      } else {
-        // Find sender user name
-        const sendUser = window.app.users.find(u => u.email === tx.sender);
-        displayTitle = `Transfer from ${sendUser ? sendUser.name : tx.sender}`;
-      }
-
-      // Formatting variables
-      const formattedDate = new Date(tx.timestamp).toLocaleString('en-US', { 
-        month: 'short', 
-        day: 'numeric', 
-        hour: '2-digit', 
-        minute: '2-digit' 
-      });
-      const amountFormatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(tx.amount);
-      
-      // Icon mapping (simplified inline SVG depending on transfer type)
-      let svgIcon = "";
-      if (tx.sender === "Capital Ingress") {
-        svgIcon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>`;
-      } else if (isSender) {
-        svgIcon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>`;
-      } else {
-        svgIcon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2"><line x1="17" y1="17" x2="7" y2="7"/><polyline points="7 17 7 7 17 7"/></svg>`;
-      }
-
-      const txItem = document.createElement("div");
-      txItem.className = "transaction-item";
-      txItem.innerHTML = `
-        <div class="tx-info-block">
-          <div class="tx-icon-wrapper">
-            ${svgIcon}
-          </div>
-          <div class="tx-details">
-            <span class="tx-title">${displayTitle}</span>
-            <span class="tx-time">${formattedDate} • <em>${tx.note}</em></span>
-          </div>
-        </div>
-        <div class="tx-financials">
-          <div class="tx-amount ${isSender && tx.sender !== "Capital Ingress" ? "negative" : "positive"}">
-            ${isSender && tx.sender !== "Capital Ingress" ? "-" : "+"}${amountFormatted}
-          </div>
-          <span class="tx-status-pill status-${tx.status}">${tx.status}</span>
-        </div>
-      `;
-      txContainer.appendChild(txItem);
-    });
-  }
-
-  renderCustomerChart() {
-    const ctx = document.getElementById("customer-analytics-chart");
-    if (!ctx) return;
-
-    if (this.customerChart) {
-      this.customerChart.destroy();
-    }
-
-    // Premium styling config
-    const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 300);
-    gradient.addColorStop(0, 'rgba(99, 102, 241, 0.4)');
-    gradient.addColorStop(1, 'rgba(99, 102, 241, 0)');
-
-    this.customerChart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-        datasets: [{
-          label: 'Asset Valuations',
-          data: [8200, 9400, 11000, 10500, 12800, window.app.currentUser.balance],
-          borderColor: '#6366f1',
-          borderWidth: 3,
-          backgroundColor: gradient,
-          fill: true,
-          tension: 0.4,
-          pointBackgroundColor: '#06b6d4',
-          pointBorderColor: '#ffffff',
-          pointHoverRadius: 7
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false }
-        },
-        scales: {
-          y: {
-            grid: { color: 'rgba(255, 255, 255, 0.05)' },
-            ticks: { color: '#94a3b8', font: { family: 'Outfit' } }
-          },
-          x: {
-            grid: { display: false },
-            ticks: { color: '#94a3b8', font: { family: 'Outfit' } }
-          }
+          el.textContent = Math.floor(obj.val).toLocaleString();
         }
       }
     });
-  }
+  };
 
-  handleDepositSubmit(e) {
-    e.preventDefault();
-    const user = window.app.currentUser;
-    const amount = parseFloat(document.getElementById("deposit-amount").value);
+  // --- Navigation Tab Switching Logic ---
+  const setupNavTabs = () => {
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(item => {
+      item.addEventListener('click', (e) => {
+        const targetTab = item.getAttribute('data-tab');
+        if (!targetTab) return;
 
-    if (isNaN(amount) || amount <= 0) {
-      return;
+        // Toggle active navigation buttons
+        navItems.forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+
+        // Toggle target pages
+        const sections = document.querySelectorAll('.page-section');
+        sections.forEach(sec => sec.classList.remove('active'));
+
+        const activeSection = document.getElementById(`sect-${targetTab}`);
+        if (activeSection) {
+          activeSection.classList.add('active');
+
+          // Trigger GSAP entrance animations for elements inside the section with clearProps
+          gsap.from(activeSection.querySelectorAll('.info-card, .chart-card, .table-card, .stat-card, .profile-header-card, .settings-section'), {
+            y: 20,
+            opacity: 0,
+            duration: 0.5,
+            stagger: 0.08,
+            ease: 'power3.out',
+            clearProps: "all"
+          });
+        }
+
+        // Close sidebar on mobile
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        if (sidebar && sidebar.classList.contains('open')) {
+          sidebar.classList.remove('open');
+          overlay.classList.remove('open');
+        }
+      });
+    });
+  };
+
+  // --- Theme Toggle Control ---
+  const setupThemeToggle = () => {
+    const toggle = document.getElementById('darkToggle');
+    if (!toggle) return;
+
+    const currentTheme = localStorage.getItem('apex_theme') || 'light';
+    if (currentTheme === 'dark') {
+      document.body.classList.add('dark-mode');
+      toggle.classList.add('on');
+      toggle.querySelector('i').className = 'fa-solid fa-moon';
     }
 
-    // Add balance
-    user.balance += amount;
-    
-    // Log Completed deposit transaction
-    const newTx = {
-      id: "TX-" + Math.floor(10000 + Math.random() * 90000),
-      sender: "Capital Ingress",
-      recipient: user.email,
-      amount: amount,
-      status: "completed",
-      timestamp: new Date().toISOString(),
-      note: "Automated ACH Node Deposit"
+    toggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+      toggle.classList.toggle('on');
+      const icon = toggle.querySelector('i');
+
+      const isDark = document.body.classList.contains('dark-mode');
+      if (isDark) {
+        icon.className = 'fa-solid fa-moon';
+        localStorage.setItem('apex_theme', 'dark');
+        spawnToast('Theme Synced', 'Dark Mode Activated', 'info');
+      } else {
+        icon.className = 'fa-solid fa-sun';
+        localStorage.setItem('apex_theme', 'light');
+        spawnToast('Theme Synced', 'Light Mode Activated', 'info');
+      }
+
+      // Re-trigger color adjustments in charts
+      updateChartsTheme(isDark);
+    });
+  };
+
+  const updateChartsTheme = (isDark) => {
+    const gridColor = isDark ? COLORS.darkGridColor : COLORS.gridColor;
+    const textColor = isDark ? COLORS.blueLight : COLORS.textDark;
+
+    Object.keys(charts).forEach(key => {
+      const chart = charts[key];
+      if (chart.options.scales && chart.options.scales.x) {
+        chart.options.scales.x.grid.color = gridColor;
+        chart.options.scales.x.ticks.color = textColor;
+      }
+      if (chart.options.scales && chart.options.scales.y) {
+        chart.options.scales.y.grid.color = gridColor;
+        chart.options.scales.y.ticks.color = textColor;
+      }
+      chart.update();
+    });
+  };
+
+  // --- Sidebar Mobile Toggle Handler ---
+  const setupMobileSidebar = () => {
+    const btn = document.getElementById('navbarToggle');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    const closeBtn = document.getElementById('sidebarCloseBtn');
+
+    if (!btn || !sidebar || !overlay) return;
+
+    btn.addEventListener('click', () => {
+      sidebar.classList.add('open');
+      overlay.classList.add('open');
+    });
+
+    const closeSidebar = () => {
+      sidebar.classList.remove('open');
+      overlay.classList.remove('open');
     };
 
-    window.app.transactions.push(newTx);
-    window.app.saveUsers();
-    window.app.saveTransactions();
-
-    // Close Modal and Redraw
-    document.getElementById("deposit-modal").classList.remove("active-modal");
-    document.getElementById("deposit-form").reset();
-    
-    this.renderCustomerDashboard();
-  }
-
-  handleTransferSubmit(e) {
-    e.preventDefault();
-    const user = window.app.currentUser;
-
-    if (user.status === "frozen") {
-      return;
+    overlay.addEventListener('click', closeSidebar);
+    if (closeBtn) {
+      closeBtn.addEventListener('click', closeSidebar);
     }
+  };
 
-    const recipientSearch = document.getElementById("transfer-recipient").value.trim().toLowerCase();
-    const amount = parseFloat(document.getElementById("transfer-amount").value);
+  // --- Render Dynamic Lists (Members, Programs, Roster, Meal logs) ---
+  const renderAllTables = () => {
+    const listMembers = JSON.parse(localStorage.getItem('apex_members')) || [];
+    const listTrainers = JSON.parse(localStorage.getItem('apex_trainers')) || [];
+    const listPrograms = JSON.parse(localStorage.getItem('apex_programs')) || [];
+    const listNotifs = JSON.parse(localStorage.getItem('apex_notifications')) || [];
 
-    if (isNaN(amount) || amount <= 0) {
-      return;
-    }
+    // --- Admin Views ---
+    if (userRole === 'admin') {
+      // 1. Dashboard Table: Recent Members
+      const recentTbody = document.getElementById('recentMembersList');
+      if (recentTbody) {
+        recentTbody.innerHTML = '';
+        listMembers.slice(0, 5).forEach((m, idx) => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>
+              <div class="table-avatar">
+                <div class="avatar-circle" style="background:var(--gradient-primary)">${m.name.charAt(0)}</div>
+                <div>
+                  <div class="avatar-name">${m.name}</div>
+                  <div class="avatar-email">${m.email}</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="role-badge user">${m.role}</span></td>
+            <td>${m.phone}</td>
+            <td><span class="status-badge ${m.status}">${m.status}</span></td>
+            <td>
+              <button class="btn btn-secondary btn-sm" onclick="window.dashboardApp.manageMember('${m.email}')">Manage</button>
+            </td>
+          `;
+          recentTbody.appendChild(row);
+        });
+      }
 
-    if (amount > user.balance) {
-      return;
-    }
+      // 2. Members tab: Full Members list
+      const fullTbody = document.getElementById('allMembersList');
+      if (fullTbody) {
+        fullTbody.innerHTML = '';
+        listMembers.forEach((m) => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>
+              <div class="table-avatar">
+                <div class="avatar-circle" style="background:var(--gradient-blue)">${m.name.charAt(0)}</div>
+                <div class="avatar-name">${m.name}</div>
+              </div>
+            </td>
+            <td>${m.email}</td>
+            <td><span class="role-badge user">${m.role}</span></td>
+            <td>${m.phone}</td>
+            <td><span class="status-badge ${m.status}">${m.status}</span></td>
+            <td>
+              <button class="btn btn-secondary btn-sm" style="color:var(--danger); border-color:rgba(239,68,68,0.2)" onclick="window.dashboardApp.deleteMember('${m.email}')"><i class="fa-regular fa-trash-can"></i></button>
+            </td>
+          `;
+          fullTbody.appendChild(row);
+        });
+      }
 
-    // Find recipient by name or email
-    const recipient = window.app.users.find(u => 
-      u.email === recipientSearch || u.name.toLowerCase() === recipientSearch
-    );
+      // 3. Trainers grid
+      const trainersGrid = document.getElementById('trainersGrid');
+      if (trainersGrid) {
+        trainersGrid.innerHTML = '';
+        listTrainers.forEach(t => {
+          const card = document.createElement('div');
+          card.className = 'info-card text-center';
+          card.innerHTML = `
+            <img src="${t.image}" alt="${t.name}" style="width:70px; height:70px; border-radius:50%; margin:0 auto 12px; object-fit:cover;">
+            <h3 class="workout-name">${t.name}</h3>
+            <p class="workout-category">${t.specialty}</p>
+            <div class="status-badge active" style="margin-top:10px;">${t.activeCount}</div>
+          `;
+          trainersGrid.appendChild(card);
+        });
+      }
 
-    if (!recipient) {
-      return;
-    }
-
-    if (recipient.email === user.email) {
-      return;
-    }
-
-    // Create a Pending transaction (requires owner's approval)
-    const newTx = {
-      id: "TX-" + Math.floor(10000 + Math.random() * 90000),
-      sender: user.email,
-      recipient: recipient.email,
-      amount: amount,
-      status: "pending",
-      timestamp: new Date().toISOString(),
-      note: "Direct Node-to-Node Transfer"
-    };
-
-    window.app.transactions.push(newTx);
-    window.app.saveTransactions();
-
-    document.getElementById("transfer-funds-form").reset();
-    
-    this.renderCustomerDashboard();
-  }
-
-  /* ==========================================
-     Owner Dashboard Implementation
-     ========================================== */
-  renderOwnerDashboard() {
-    // 1. Calculate Key Metrics
-    const customers = window.app.users.filter(u => u.role === "customer");
-    const totalAUM = customers.reduce((sum, u) => sum + u.balance, 0);
-    const totalUsers = customers.length;
-    
-    const completedTx = window.app.transactions.filter(t => t.status === "completed");
-    const totalVolume = completedTx.reduce((sum, t) => sum + t.amount, 0);
-
-    const fAUM = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(totalAUM);
-    const fVol = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(totalVolume);
-
-    document.getElementById("stat-total-aum").textContent = fAUM;
-    document.getElementById("stat-total-users").textContent = totalUsers;
-    document.getElementById("stat-total-volume").textContent = fVol;
-
-    // 2. Populate registry table
-    this.renderCustomerTable(customers);
-
-    // 3. Populate approval queue
-    this.renderApprovalQueue();
-
-    // 4. Render Owner Chart
-    this.renderOwnerChart();
-
-    // 5. Populate Admin security audit logs
-    this.renderOwnerSecurityLogs();
-
-    // 6. Init Node Telemetry metrics loop
-    this.initOwnerTelemetry();
-  }
-
-  renderCustomerTable(customers) {
-    const tableBody = document.getElementById("owner-users-table-body");
-    tableBody.innerHTML = "";
-
-    if (customers.length === 0) {
-      tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted)">No registered customer nodes found.</td></tr>`;
-      return;
-    }
-
-    customers.forEach(cust => {
-      const formattedBalance = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(cust.balance);
-      const isFrozen = cust.status === "frozen";
-
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td data-label="Client Account">
-          <div class="table-user">
-            <img src="${cust.avatar}" alt="User Profile">
-            <div>
-              <span class="table-user-name">${cust.name}</span>
-              <span class="table-user-email">${cust.email}</span>
+      // 4. Workout Programs grid
+      const progGrid = document.getElementById('programsGrid');
+      if (progGrid) {
+        progGrid.innerHTML = '';
+        listPrograms.forEach(p => {
+          const card = document.createElement('div');
+          card.className = 'workout-card';
+          card.innerHTML = `
+            <div class="workout-card-header">
+              <div class="workout-icon" style="background:var(--gradient-primary)"><i class="fa-solid fa-dumbbell"></i></div>
+              <div class="workout-meta">
+                <div class="workout-name">${p.title}</div>
+                <div class="workout-category">${p.type}</div>
+              </div>
             </div>
+            <div class="workout-stats">
+              <div class="w-stat">
+                <div class="w-stat-value">${p.duration}</div>
+                <div class="w-stat-label">Duration</div>
+              </div>
+              <div class="w-stat">
+                <div class="w-stat-value">${p.calories}</div>
+                <div class="w-stat-label">Est. Burn</div>
+              </div>
+              <div class="w-stat">
+                <div class="w-stat-value">${p.level}</div>
+                <div class="w-stat-label">Level</div>
+              </div>
+            </div>
+          `;
+          progGrid.appendChild(card);
+        });
+      }
+
+      // 5. Sports Categories grid
+      const catsGrid = document.getElementById('categoriesGrid');
+      if (catsGrid) {
+        catsGrid.innerHTML = `
+          <div class="info-card text-center">
+            <div class="stat-icon-wrap blue" style="margin:0 auto 12px;"><i class="fa-solid fa-running"></i></div>
+            <h3 class="workout-name">Aerobics &amp; Cardio</h3>
+            <p class="workout-category">2 Programs &bull; 34 Active Athletes</p>
           </div>
-        </td>
-        <td data-label="Available Balance"><strong>${formattedBalance}</strong></td>
-        <td data-label="Account Status">
-          <span class="table-status status-${cust.status}">
-            <span class="status-indicator ${isFrozen ? 'red' : 'green'}"></span>
-            ${cust.status}
-          </span>
-        </td>
-        <td data-label="Administrative Action" style="text-align: right">
-          <button class="btn-small ${isFrozen ? 'btn-small-success' : 'btn-small-danger'}" data-email="${cust.email}">
-            ${isFrozen ? 'Unfreeze Account' : 'Freeze Account'}
-          </button>
-        </td>
-      `;
-
-      // Event listener on Action button
-      tr.querySelector("button").addEventListener("click", (e) => {
-        const email = e.target.getAttribute("data-email");
-        this.toggleCustomerFreeze(email);
-      });
-
-      tableBody.appendChild(tr);
-    });
-  }
-
-  toggleCustomerFreeze(email) {
-    const user = window.app.users.find(u => u.email === email);
-    if (!user) return;
-
-    user.status = user.status === "frozen" ? "active" : "frozen";
-    window.app.saveUsers();
-    
-    // Refresh
-    this.renderOwnerDashboard();
-  }
-
-  handleOwnerUserSearch(query) {
-    const cleanQuery = query.toLowerCase().trim();
-    const customers = window.app.users.filter(u => u.role === "customer");
-    
-    const filtered = customers.filter(cust => 
-      cust.name.toLowerCase().includes(cleanQuery) || 
-      cust.email.toLowerCase().includes(cleanQuery) || 
-      cust.status.toLowerCase().includes(cleanQuery)
-    );
-
-    this.renderCustomerTable(filtered);
-  }
-
-  renderApprovalQueue() {
-    const queueContainer = document.getElementById("owner-pending-ledger");
-    queueContainer.innerHTML = "";
-
-    const pendingTx = window.app.transactions.filter(tx => tx.status === "pending");
-
-    if (pendingTx.length === 0) {
-      queueContainer.innerHTML = `<div style="text-align:center; padding: 1.5rem 0; color:var(--text-muted)">No pending transaction approvals.</div>`;
-      return;
+          <div class="info-card text-center">
+            <div class="stat-icon-wrap orange" style="margin:0 auto 12px;"><i class="fa-solid fa-dumbbell"></i></div>
+            <h3 class="workout-name">Strength Training</h3>
+            <p class="workout-category">3 Programs &bull; 62 Active Athletes</p>
+          </div>
+          <div class="info-card text-center">
+            <div class="stat-icon-wrap green" style="margin:0 auto 12px;"><i class="fa-solid fa-heart-pulse"></i></div>
+            <h3 class="workout-name">Recovery &amp; Yoga</h3>
+            <p class="workout-category">1 Program &bull; 19 Active Athletes</p>
+          </div>
+        `;
+      }
     }
 
-    pendingTx.forEach(tx => {
-      const senderUser = window.app.users.find(u => u.email === tx.sender);
-      const recipientUser = window.app.users.find(u => u.email === tx.recipient);
-      
-      const formattedAmount = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(tx.amount);
+    // --- Athlete/User Views ---
+    if (userRole === 'user') {
+      const listUserActivities = JSON.parse(localStorage.getItem('apex_user_activities')) || [];
+      const listMeals = JSON.parse(localStorage.getItem('apex_user_meals')) || [];
+      const listAchievements = JSON.parse(localStorage.getItem('apex_achievements')) || [];
 
-      const div = document.createElement("div");
-      div.className = "ledger-item";
-      div.innerHTML = `
-        <div class="ledger-details">
-          <span class="ledger-amount">${formattedAmount}</span>
-          <span class="ledger-meta">
-            From: <strong>${senderUser ? senderUser.name : tx.sender}</strong>
-          </span>
-          <span class="ledger-meta">
-            To: <strong>${recipientUser ? recipientUser.name : tx.recipient}</strong>
-          </span>
-          <span class="ledger-meta" style="font-style:italic">"${tx.note}"</span>
-        </div>
-        <div class="ledger-actions">
-          <button class="btn-icon approve-btn" title="Approve Transaction" style="color:var(--success)">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <polyline points="20 6 9 17 4 12"/>
-            </svg>
-          </button>
-          <button class="btn-icon reject-btn" title="Reject Transaction" style="color:var(--danger)">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <line x1="18" y1="6" x2="6" y2="18"/>
-              <line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-          </button>
-        </div>
-      `;
-
-      // Wire up approval button
-      div.querySelector(".approve-btn").addEventListener("click", () => {
-        this.processTransaction(tx.id, "approve");
-      });
-
-      // Wire up rejection button
-      div.querySelector(".reject-btn").addEventListener("click", () => {
-        this.processTransaction(tx.id, "reject");
-      });
-
-      queueContainer.appendChild(div);
-    });
-  }
-
-  processTransaction(txId, action) {
-    const tx = window.app.transactions.find(t => t.id === txId);
-    if (!tx) return;
-
-    if (action === "approve") {
-      // Find sender and recipient
-      const sender = window.app.users.find(u => u.email === tx.sender);
-      const recipient = window.app.users.find(u => u.email === tx.recipient);
-
-      if (!sender || !recipient) {
-        return;
+      // 1. Progress timeline
+      const timeline = document.getElementById('progressTimelineList');
+      if (timeline) {
+        timeline.innerHTML = '';
+        listUserActivities.slice(0, 3).forEach((a) => {
+          const item = document.createElement('div');
+          item.className = 'activity-item';
+          item.innerHTML = `
+            <div class="activity-icon" style="background:var(--gradient-blue)"><i class="fa-solid fa-circle-check"></i></div>
+            <div class="activity-info">
+              <div class="activity-title">Completed ${a.type}</div>
+              <div class="activity-meta">Burned ${a.burn} in ${a.duration} mins.</div>
+            </div>
+            <div class="activity-time">${a.date}</div>
+          `;
+          timeline.appendChild(item);
+        });
       }
 
-      // Re-verify balances just in case
-      if (sender.balance < tx.amount) {
-        tx.status = "rejected";
-      } else {
-        // Execute ledger balancing
-        sender.balance -= tx.amount;
-        recipient.balance += tx.amount;
-        tx.status = "completed";
+      // 2. Activity logs table
+      const actTbody = document.getElementById('userActivitiesList');
+      if (actTbody) {
+        actTbody.innerHTML = '';
+        listUserActivities.forEach((a) => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${a.date}</td>
+            <td><strong>${a.type}</strong></td>
+            <td>${a.duration} min</td>
+            <td><span class="status-badge active">${a.burn}</span></td>
+            <td>${a.complexity}</td>
+          `;
+          actTbody.appendChild(row);
+        });
       }
-    } else {
-      tx.status = "rejected";
+
+      // 3. User Workouts Grid
+      const userWorkGrid = document.getElementById('userWorkoutsGrid');
+      if (userWorkGrid) {
+        userWorkGrid.innerHTML = '';
+        listPrograms.forEach(p => {
+          const card = document.createElement('div');
+          card.className = 'workout-card';
+          card.innerHTML = `
+            <div class="workout-card-header">
+              <div class="workout-icon" style="background:var(--gradient-blue)"><i class="fa-solid fa-person-running"></i></div>
+              <div class="workout-meta">
+                <div class="workout-name">${p.title}</div>
+                <div class="workout-category">${p.type}</div>
+              </div>
+            </div>
+            <div class="workout-stats">
+              <div class="w-stat">
+                <div class="w-stat-value">${p.duration}</div>
+                <div class="w-stat-label">Duration</div>
+              </div>
+              <div class="w-stat">
+                <div class="w-stat-value">${p.calories}</div>
+                <div class="w-stat-label">Energy</div>
+              </div>
+              <div class="w-stat">
+                <div class="w-stat-value">${p.level}</div>
+                <div class="w-stat-label">Difficulty</div>
+              </div>
+            </div>
+          `;
+          userWorkGrid.appendChild(card);
+        });
+      }
+
+      // 4. Meals Tracker
+      const mealsList = document.getElementById('mealsList');
+      if (mealsList) {
+        mealsList.innerHTML = '';
+        listMeals.forEach(m => {
+          const item = document.createElement('div');
+          item.className = 'activity-item';
+          item.innerHTML = `
+            <div class="activity-icon" style="background:linear-gradient(135deg,#10B981,#34D399)"><i class="fa-solid fa-bowl-food"></i></div>
+            <div class="activity-info">
+              <div class="activity-title">${m.name}</div>
+              <div class="activity-meta">Carbs: ${m.carbs} &bull; Protein: ${m.prot} &bull; Fat: ${m.fat}</div>
+            </div>
+            <div class="activity-time">${m.time} &bull; ${m.cals}</div>
+          `;
+          mealsList.appendChild(item);
+        });
+      }
+
+      // 5. Trophy achievements grid
+      const achGrid = document.getElementById('achievementsGrid');
+      if (achGrid) {
+        achGrid.innerHTML = '';
+        listAchievements.forEach(ac => {
+          const card = document.createElement('div');
+          card.className = 'achievement-card';
+          card.innerHTML = `
+            <div class="achievement-badge" style="background:rgba(27, 5, 106,0.12); color:var(--primary);"><i class="${ac.icon}"></i></div>
+            <div class="achievement-info">
+              <h3 class="achievement-name">${ac.title}</h3>
+              <p class="achievement-desc">${ac.desc}</p>
+            </div>
+            <div class="achievement-date">${ac.date}</div>
+          `;
+          achGrid.appendChild(card);
+        });
+      }
     }
 
-    // Save and render
-    window.app.saveUsers();
-    window.app.saveTransactions();
-    this.renderOwnerDashboard();
-  }
+    // --- Dynamic Notifications Panel ---
+    const notifsBox = document.getElementById('notificationsCard');
+    if (notifsBox) {
+      notifsBox.innerHTML = '';
+      const container = document.createElement('div');
+      container.className = 'activity-list';
+      listNotifs.forEach(n => {
+        let grad = 'var(--gradient-primary)';
+        if (n.color === 'blue') grad = 'var(--gradient-blue)';
+        if (n.color === 'green') grad = 'linear-gradient(135deg, #10B981, #34D399)';
+        if (n.color === 'yellow') grad = 'linear-gradient(135deg, #F59E0B, #FCD34D)';
 
-  renderOwnerChart() {
-    const ctx = document.getElementById("owner-analytics-chart");
-    if (!ctx) return;
-
-    if (this.ownerChart) {
-      this.ownerChart.destroy();
+        const item = document.createElement('div');
+        item.className = 'activity-item';
+        item.innerHTML = `
+          <div class="activity-icon" style="background:${grad}"><i class="fa-solid ${n.icon}"></i></div>
+          <div class="activity-info">
+            <div class="activity-title">${n.title}</div>
+            <div class="activity-meta">${n.desc}</div>
+          </div>
+          <div class="activity-time">${n.time}</div>
+        `;
+        container.appendChild(item);
+      });
+      notifsBox.appendChild(container);
     }
 
-    // Premium styling config
-    this.ownerChart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-        datasets: [{
-          label: 'Platform Activity Rate',
-          data: [12, 19, 3, 5, 2, 3, 8],
-          backgroundColor: '#fbbf24',
-          borderRadius: 4,
-          borderWidth: 0
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false }
-        },
-        scales: {
-          y: {
-            grid: { color: 'rgba(255, 255, 255, 0.04)' },
-            ticks: { color: '#71717a', font: { family: 'Outfit' } }
+    // --- Dashboard Recents Table: Add event feeds ---
+    const actsList = document.getElementById('recentActivitiesList');
+    if (actsList) {
+      actsList.innerHTML = `
+        <div class="activity-item">
+          <div class="activity-icon" style="background:var(--gradient-blue)"><i class="fa-solid fa-running"></i></div>
+          <div class="activity-info">
+            <div class="activity-title">Sarah Connor completed HIIT Program</div>
+            <div class="activity-meta">Duration: 45 min &bull; Energy: 520 kcal</div>
+          </div>
+          <div class="activity-time">10m ago</div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-icon" style="background:var(--gradient-primary)"><i class="fa-solid fa-dumbbell"></i></div>
+          <div class="activity-info">
+            <div class="activity-title">Bruce Wayne logged Powerlifting Session</div>
+            <div class="activity-meta">Coached by Trainer Serena</div>
+          </div>
+          <div class="activity-time">42m ago</div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-icon" style="background:linear-gradient(135deg, #10B981, #34D399)"><i class="fa-solid fa-medal"></i></div>
+          <div class="activity-info">
+            <div class="activity-title">Diana Prince unlocked <i class="fa-solid fa-trophy" style="color:var(--primary); margin-right:4px;"></i> Centurion Trophy</div>
+            <div class="activity-meta">Exceeded 1,200 calories target.</div>
+          </div>
+          <div class="activity-time">2 hours ago</div>
+        </div>
+      `;
+    }
+
+    const eventsList = document.getElementById('upcomingEventsList');
+    if (eventsList) {
+      eventsList.innerHTML = `
+        <div class="activity-item">
+          <div class="activity-icon" style="background:var(--gradient-primary)"><i class="fa-solid fa-calendar-day"></i></div>
+          <div class="activity-info">
+            <div class="activity-title">Cardio Threshold Sprint Testing</div>
+            <div class="activity-meta">Led by Coach Carter &bull; 8 Athletes attending</div>
+          </div>
+          <div class="activity-time">14:00 Today</div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-icon" style="background:var(--gradient-blue)"><i class="fa-solid fa-clock"></i></div>
+          <div class="activity-info">
+            <div class="activity-title">Hypertrophy Load Tuning</div>
+            <div class="activity-meta">Track progress in iron room.</div>
+          </div>
+          <div class="activity-time">09:30 Tomorrow</div>
+        </div>
+      `;
+    }
+  };
+
+  // --- Chart.js Initializers ---
+  const initCharts = () => {
+    const isDark = document.body.classList.contains('dark-mode');
+    const gridColor = isDark ? COLORS.darkGridColor : COLORS.gridColor;
+
+    if (userRole === 'admin') {
+      // 1. Membership Growth Line Chart
+      const memCtx = document.getElementById('membershipGrowthChart');
+      if (memCtx) {
+        charts.growth = new Chart(memCtx, {
+          type: 'line',
+          data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [{
+              label: 'Active Athletes Enrolled',
+              data: [420, 680, 890, 1020, 1140, 1240],
+              borderColor: COLORS.primary,
+              backgroundColor: 'rgba(255, 107, 53, 0.1)',
+              tension: 0.4,
+              fill: true,
+              borderWidth: 3
+            }, {
+              label: 'Target Estimation Limit',
+              data: [500, 700, 900, 1100, 1200, 1300],
+              borderColor: COLORS.blue,
+              borderDash: [5, 5],
+              fill: false,
+              borderWidth: 2
+            }]
           },
-          x: {
-            grid: { display: false },
-            ticks: { color: '#71717a', font: { family: 'Outfit' } }
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: { grid: { color: gridColor }, ticks: { font: { family: 'Poppins' } } },
+              y: { grid: { color: gridColor }, ticks: { font: { family: 'Poppins' } } }
+            },
+            plugins: { legend: { labels: { font: { family: 'Poppins' } } } }
           }
-        }
+        });
       }
-    });
-  }
 
-  renderCustomerContacts() {
-    const container = document.getElementById("quick-contacts-container");
-    if (!container) return;
+      // 2. Revenue Analytics Bar Chart
+      const revCtx = document.getElementById('revenueAnalyticsChart');
+      if (revCtx) {
+        charts.revenue = new Chart(revCtx, {
+          type: 'bar',
+          data: {
+            labels: ['Q1-25', 'Q2-25', 'Q3-25', 'Q4-25', 'Q1-26', 'Q2-26'],
+            datasets: [{
+              label: 'Revenue Analytics',
+              data: [12000, 18500, 24000, 31000, 29000, 48000],
+              backgroundColor: COLORS.blue,
+              borderRadius: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: { grid: { display: false } },
+              y: { grid: { color: gridColor } }
+            }
+          }
+        });
+      }
 
-    container.innerHTML = "";
-    
-    // Filter users list to get other customer accounts
-    const contacts = window.app.users.filter(u => u.email !== window.app.currentUser.email && u.role === "customer");
-    
-    if (contacts.length === 0) {
-      container.innerHTML = `<div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; width: 100%;">No contacts found</div>`;
-      return;
+      // 3. Sports Participation Doughnut Chart
+      const sportCtx = document.getElementById('sportsParticipationChart');
+      if (sportCtx) {
+        charts.participation = new Chart(sportCtx, {
+          type: 'doughnut',
+          data: {
+            labels: ['Cardio Athletics', 'Strength Training', 'Recovery & Yoga'],
+            datasets: [{
+              data: [34, 62, 19],
+              backgroundColor: [COLORS.blue, COLORS.primary, COLORS.green],
+              borderWidth: 0
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'right' } }
+          }
+        });
+      }
+
+      // 4. Weekly Activity Graph (Analytics tab)
+      const weeklyCtx = document.getElementById('weeklyActivityChart');
+      if (weeklyCtx) {
+        charts.weekly = new Chart(weeklyCtx, {
+          type: 'line',
+          data: {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            datasets: [{
+              label: 'Platform Logins',
+              data: [780, 890, 840, 920, 1100, 1200, 950],
+              borderColor: COLORS.primary,
+              tension: 0.3
+            }]
+          },
+          options: { responsive: true, maintainAspectRatio: false }
+        });
+      }
+
+      // 5. Monthly Performance Analytics Bar Chart (Analytics tab)
+      const monthlyCtx = document.getElementById('monthlyPerformanceChart');
+      if (monthlyCtx) {
+        charts.monthly = new Chart(monthlyCtx, {
+          type: 'bar',
+          data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [{
+              label: 'Completed Programs',
+              data: [210, 340, 410, 380, 520, 680],
+              backgroundColor: COLORS.green
+            }]
+          },
+          options: { responsive: true, maintainAspectRatio: false }
+        });
+      }
     }
 
-    contacts.forEach(contact => {
-      const node = document.createElement("div");
-      node.className = "contact-node";
-      node.innerHTML = `
-        <img class="contact-avatar" src="${contact.avatar}" alt="${contact.name}">
-        <span class="contact-name">${contact.name.split(" ")[0]}</span>
-      `;
-      
-      node.addEventListener("click", () => {
-        const recipientField = document.getElementById("transfer-recipient");
-        const amountField = document.getElementById("transfer-amount");
-        if (recipientField && amountField) {
-          recipientField.value = contact.email;
-          amountField.focus();
-        }
+    if (userRole === 'user') {
+      // 1. Workout Progress Line Chart (User)
+      const uCtx = document.getElementById('userWorkoutProgressChart');
+      if (uCtx) {
+        charts.userProgress = new Chart(uCtx, {
+          type: 'line',
+          data: {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            datasets: [{
+              label: 'Minutes Trained',
+              data: [45, 60, 0, 50, 75, 90, 30],
+              borderColor: COLORS.blue,
+              backgroundColor: COLORS.blueGlow,
+              fill: true,
+              borderWidth: 3,
+              tension: 0.4
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: { grid: { color: gridColor } },
+              y: { grid: { color: gridColor } }
+            }
+          }
+        });
+      }
+
+      // 2. Calories Burned Chart (User)
+      const ucCtx = document.getElementById('userCaloriesBurnedChart');
+      if (ucCtx) {
+        charts.userCalories = new Chart(ucCtx, {
+          type: 'bar',
+          data: {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            datasets: [{
+              label: 'Active Burn (kcal)',
+              data: [380, 520, 0, 440, 650, 742, 280],
+              backgroundColor: COLORS.primary,
+              borderRadius: 6
+            }]
+          },
+          options: { responsive: true, maintainAspectRatio: false }
+        });
+      }
+
+      // 3. Activity Distribution Doughnut Chart (User)
+      const uadCtx = document.getElementById('userActivityDistributionChart');
+      if (uadCtx) {
+        charts.userActDist = new Chart(uadCtx, {
+          type: 'doughnut',
+          data: {
+            labels: ['Running & Speed', 'Iron Lift', 'Aerobic Swim'],
+            datasets: [{
+              data: [50, 35, 15],
+              backgroundColor: [COLORS.blue, COLORS.primary, COLORS.green],
+              borderWidth: 0
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'right' } }
+          }
+        });
+      }
+
+      // 4. Fitness Improvement Graph (Progress tab)
+      const ufiCtx = document.getElementById('userFitnessScoreChart');
+      if (ufiCtx) {
+        charts.userFitness = new Chart(ufiCtx, {
+          type: 'line',
+          data: {
+            labels: ['Wk 1', 'Wk 2', 'Wk 3', 'Wk 4', 'Wk 5', 'Wk 6'],
+            datasets: [{
+              label: 'Endurance Index Score',
+              data: [72, 74, 76.5, 78, 80.5, 82],
+              borderColor: COLORS.green,
+              tension: 0.3
+            }]
+          },
+          options: { responsive: true, maintainAspectRatio: false }
+        });
+      }
+
+      // 5. Weekly Performance Analytics Graph (Progress tab)
+      const uwpCtx = document.getElementById('userWeeklyPerformanceChart');
+      if (uwpCtx) {
+        charts.userPerformance = new Chart(uwpCtx, {
+          type: 'bar',
+          data: {
+            labels: ['Cardio Speed', 'Iron Lift', 'Aerobic Swim'],
+            datasets: [{
+              label: 'Sessions Done',
+              data: [4, 6, 2],
+              backgroundColor: COLORS.primary
+            }]
+          },
+          options: { responsive: true, maintainAspectRatio: false }
+        });
+      }
+    }
+  };
+
+  // --- Dynamic Dashboard Searching (Client Side) ---
+  const setupTableSearch = () => {
+    // 1. Admin dashboard recents search
+    const dbSearch = document.getElementById('recentMembersSearch');
+    if (dbSearch) {
+      dbSearch.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase();
+        const rows = document.querySelectorAll('#recentMembersList tr');
+        rows.forEach(row => {
+          const text = row.innerText.toLowerCase();
+          row.style.display = text.includes(query) ? '' : 'none';
+        });
       });
-      
-      container.appendChild(node);
-    });
-  }
-
-  initOwnerTelemetry() {
-    if (this.telemetryInterval) {
-      clearInterval(this.telemetryInterval);
     }
 
-    const cpuVal = document.getElementById("telemetry-cpu-val");
-    const cpuBar = document.getElementById("telemetry-cpu-bar");
-    const latencyVal = document.getElementById("telemetry-latency-val");
-    const latencyBar = document.getElementById("telemetry-latency-bar");
-    const memVal = document.getElementById("telemetry-mem-val");
-    const memBar = document.getElementById("telemetry-mem-bar");
+    // 2. Admin members management search
+    const memSearch = document.getElementById('membersManageSearch');
+    if (memSearch) {
+      memSearch.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase();
+        const rows = document.querySelectorAll('#allMembersList tr');
+        rows.forEach(row => {
+          const text = row.innerText.toLowerCase();
+          row.style.display = text.includes(query) ? '' : 'none';
+        });
+      });
+    }
 
-    const updateMetrics = () => {
-      if (!cpuVal) return;
-      
-      // CPU Load: fluctuate 15% - 35%
-      const cpu = Math.floor(15 + Math.random() * 20);
-      cpuVal.textContent = `${cpu}%`;
-      cpuBar.style.width = `${cpu}%`;
-      if (cpu > 30) {
-        cpuBar.style.background = "linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)";
-      } else {
-        cpuBar.style.background = "var(--success-gradient)";
+    // 3. Global Navbar search
+    const globSearch = document.getElementById('globalSearch');
+    if (globSearch) {
+      globSearch.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase();
+        spawnToast('Global Search', `Filtering index targets for: "${query}"`, 'info');
+      });
+    }
+  };
+
+  // --- Dynamic Table Sorting ---
+  let sortDirection = {};
+  const sortTable = (columnKey) => {
+    const list = JSON.parse(localStorage.getItem('apex_members')) || [];
+    sortDirection[columnKey] = !sortDirection[columnKey];
+
+    list.sort((a, b) => {
+      let valA = a[columnKey] || '';
+      let valB = b[columnKey] || '';
+      if (typeof valA === 'string') {
+        return sortDirection[columnKey] 
+          ? valA.localeCompare(valB) 
+          : valB.localeCompare(valA);
       }
-
-      // Latency: fluctuate 30ms - 55ms
-      const lat = Math.floor(30 + Math.random() * 25);
-      latencyVal.textContent = `${lat}ms`;
-      latencyBar.style.width = `${lat}%`;
-      if (lat > 50) {
-        latencyBar.style.background = "linear-gradient(135deg, #f43f5e 0%, #fb7185 100%)";
-      } else {
-        latencyBar.style.background = "var(--success-gradient)";
-      }
-
-      // Memory: fluctuate 65% - 72%
-      const mem = Math.floor(65 + Math.random() * 7);
-      memVal.textContent = `${mem}%`;
-      memBar.style.width = `${mem}%`;
-    };
-
-    updateMetrics();
-    this.telemetryInterval = setInterval(updateMetrics, 3000);
-  }
-
-  renderOwnerSecurityLogs() {
-    const container = document.getElementById("owner-audit-log-container");
-    if (!container) return;
-
-    const logs = [
-      { time: "15:46:12", desc: "System overseer node gateway synced successfully." },
-      { time: "14:20:01", desc: "Double-factor keychain authentication token verified." },
-      { time: "11:30:15", desc: "Automated incremental backup of client database generated." },
-      { time: "09:15:42", desc: "Client account status query request cleared." },
-      { time: "08:00:00", desc: "Daily AUM ledger balancing and cache clearing executed." },
-      { time: "06:12:05", desc: "Intrusion prevention scan finished - 0 warnings." }
-    ];
-
-    container.innerHTML = "";
-    logs.forEach(log => {
-      const item = document.createElement("div");
-      item.className = "audit-item";
-      item.innerHTML = `
-        <span class="audit-time">[ ${log.time} ]</span>
-        <span class="audit-desc">${log.desc}</span>
-      `;
-      container.appendChild(item);
+      return sortDirection[columnKey] ? valA - valB : valB - valA;
     });
-  }
-}
 
-// Instantiate dashboard controller
-window.dashboardController = new DashboardController();
+    localStorage.setItem('apex_members', JSON.stringify(list));
+    renderAllTables();
+    spawnToast('Sorting Configured', `Re-indexed list sorted by: ${columnKey.toUpperCase()}`, 'info');
+  };
+
+  // --- Settings Form Syncing (Profile Updates) ---
+  const setupSettingsForms = () => {
+    // Admin profile settings form
+    const adminForm = document.getElementById('adminSettingsForm');
+    if (adminForm) {
+      adminForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const newName = document.getElementById('adminNameInput').value.trim();
+        const newPhone = document.getElementById('adminPhoneInput').value.trim();
+
+
+
+        activeUser.username = newName;
+        activeUser.phone = newPhone;
+        localStorage.setItem(`apex_profile_${activeUser.email}`, JSON.stringify(activeUser));
+
+        updateProfileDisplays();
+        spawnToast('Profile Modified', 'Administrative details saved successfully.', 'success');
+      });
+    }
+
+    // Athlete Profile Settings Form
+    const userForm = document.getElementById('userSettingsForm');
+    if (userForm) {
+      // Load current profile fields
+      document.getElementById('userNameInput').value = activeUser.username || '';
+      document.getElementById('userPhoneInput').value = activeUser.phone || '';
+
+      userForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const newName = document.getElementById('userNameInput').value.trim();
+        const newPhone = document.getElementById('userPhoneInput').value.trim();
+
+
+
+        activeUser.username = newName;
+        activeUser.phone = newPhone;
+        localStorage.setItem(`apex_profile_${activeUser.email}`, JSON.stringify(activeUser));
+
+        updateProfileDisplays();
+        spawnToast('Profile Synced', 'Athlete details saved successfully.', 'success');
+      });
+    }
+
+    // Athlete body metrics update
+    const bodyForm = document.getElementById('userBodyForm');
+    if (bodyForm) {
+      bodyForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const weight = document.getElementById('userWeightInput').value;
+        const height = document.getElementById('userHeightInput').value;
+
+        document.getElementById('profWeight').textContent = weight + ' kg';
+        document.getElementById('profHeight').textContent = height + ' cm';
+
+        spawnToast('Metrics Uploaded', `Body composition index updated to ${weight}kg`, 'success');
+      });
+    }
+  };
+
+  const updateProfileDisplays = () => {
+    if (!activeUser) return;
+    const nameStr = activeUser.username;
+    const emailStr = activeUser.email;
+    const char = nameStr.charAt(0).toUpperCase();
+
+    // Side nav profiles
+    const sideName = document.getElementById('sidebarName');
+    const sideAv = document.getElementById('sidebarAvatar');
+    if (sideName) sideName.textContent = nameStr;
+    if (sideAv) sideAv.textContent = char;
+
+    // Top Nav Profiles
+    const navName = document.getElementById('navName');
+    const navAv = document.getElementById('navAvatar');
+    const navEmail = document.getElementById('navEmail');
+    if (navName) navName.textContent = nameStr;
+    if (navAv) navAv.textContent = char;
+    if (navEmail) navEmail.textContent = emailStr;
+
+    // View inputs
+    const settingsAvatar = document.getElementById('settingsAvatar');
+    const settingsName = document.getElementById('settingsName');
+    const settingsEmail = document.getElementById('settingsEmail');
+
+    if (settingsAvatar) settingsAvatar.textContent = char;
+    if (settingsName) settingsName.textContent = nameStr;
+    if (settingsEmail) settingsEmail.textContent = emailStr;
+
+    // User Big Card fields
+    const profileAvatarBig = document.getElementById('profileAvatarBig');
+    const profileNameBig = document.getElementById('profileNameBig');
+    const profileEmailBig = document.getElementById('profileEmailBig');
+
+    if (profileAvatarBig) profileAvatarBig.textContent = char;
+    if (profileNameBig) profileNameBig.textContent = nameStr;
+    if (profileEmailBig) profileEmailBig.textContent = emailStr;
+  };
+
+  // --- Toggle Buttons micro interactions ---
+  const setupInterfaceToggles = () => {
+    document.querySelectorAll('.toggle-switch').forEach(sw => {
+      sw.addEventListener('click', () => {
+        sw.classList.toggle('on');
+        const isActive = sw.classList.contains('on');
+        spawnToast('Option Modified', `Interface element state switched to ${isActive ? 'ON' : 'OFF'}`, 'info');
+      });
+    });
+  };
+
+  return {
+    init: (role) => {
+      userRole = role;
+      activeUser = AUTH.getActiveUser();
+
+      // Setup mock data store
+      initLocalStorageData();
+
+      // Trigger GSAP screen loader fadeout
+      setTimeout(() => {
+        const loader = document.getElementById(role === 'admin' ? 'adminLoader' : 'userLoader');
+        if (loader) {
+          gsap.to(loader, {
+            opacity: 0,
+            duration: 0.4,
+            onComplete: () => {
+              loader.style.display = 'none';
+              // Trigger stagger entry animations for dashboard widgets with clearProps
+              gsap.from('.stat-card', {
+                scale: 0.8,
+                opacity: 0,
+                duration: 0.6,
+                stagger: 0.1,
+                ease: 'back.out(1.5)',
+                clearProps: "all"
+              });
+            }
+          });
+        }
+      }, 1000);
+
+      // Populate dashboard statistics count-ups
+      if (role === 'admin') {
+        animateCountUp('valTotalUsers', 1240);
+        animateCountUp('valTotalTrainers', 180);
+        animateCountUp('valTotalPrograms', 12);
+        animateCountUp('valMonthlyRevenue', 48000, 2, 'currency');
+        animateCountUp('valActiveMembers', 980);
+      } else {
+        animateCountUp('valCalories', 742, 1.5, 'cals');
+        animateCountUp('valSessions', 5);
+        animateCountUp('valFitnessScore', 82);
+        animateCountUp('valWeeklyProgress', 75, 1.5, 'percent');
+        animateCountUp('valAchievements', 3);
+      }
+
+      // Sync user profile labels
+      updateProfileDisplays();
+
+      // Setup dynamic events and components
+      setupNavTabs();
+      setupThemeToggle();
+      setupMobileSidebar();
+      renderAllTables();
+      initCharts();
+      setupTableSearch();
+      setupSettingsForms();
+      setupInterfaceToggles();
+
+      // Add VanillaTilt inside dashboard if tilt available
+      if (typeof VanillaTilt !== 'undefined') {
+        VanillaTilt.init(document.querySelectorAll('[data-tilt]'), {
+          max: 6,
+          speed: 300,
+          glare: true,
+          "max-glare": 0.05
+        });
+      }
+
+      // Add Event listeners to general buttons
+      const logout = document.getElementById('logoutBtn');
+      if (logout) {
+        logout.addEventListener('click', () => {
+          spawnToast('Session Terminated', 'Signing out of ApexPulse environment...', 'warning');
+          setTimeout(() => AUTH.logout(), 1000);
+        });
+      }
+
+      // Notification bell → navigate to Notifications tab
+      const navNotifyBtn = document.getElementById('navNotifyBtn');
+      if (navNotifyBtn) {
+        navNotifyBtn.addEventListener('click', () => {
+          const notifNavItem = document.querySelector('.nav-item[data-tab="notifications"]');
+          if (notifNavItem) notifNavItem.click();
+        });
+      }
+    },
+
+    // --- Action triggers & Toasts ---
+    sortTable: (key) => sortTable(key),
+
+    addNewMember: () => {
+      window.location.href = '404.html';
+    },
+
+    deleteMember: (email) => {
+      window.location.href = '404.html';
+    },
+
+    addNewTrainer: () => {
+      window.location.href = '404.html';
+    },
+
+    addNewProgram: () => {
+      window.location.href = '404.html';
+    },
+
+    generateReport: (type) => {
+      window.location.href = '404.html';
+    },
+
+    exportReport: () => {
+      window.location.href = '404.html';
+    },
+
+    // --- Athlete Actions ---
+    syncWatch: () => {
+      window.location.href = '404.html';
+    },
+
+    logWorkout: () => {
+      window.location.href = '404.html';
+    },
+
+    logMeal: () => {
+      window.location.href = '404.html';
+    },
+
+    completeTodayWorkout: (btn) => {
+      window.location.href = '404.html';
+    },
+
+    changeFocus: () => {
+      window.location.href = '404.html';
+    }
+  };
+})();

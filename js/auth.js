@@ -1,179 +1,121 @@
-/**
- * Financity Authentication Controller
- */
+/* ============================================
+   APEXPULSE AUTHENTICATION SYSTEM (LOCAL STORAGE)
+   ============================================ */
 
-class AuthController {
-  constructor() {
-    this.initElements();
-    this.bindEvents();
-  }
+const AUTH = (() => {
+  // Key names in Local Storage
+  const USER_KEY_PREFIX = 'apex_profile_';
+  const ACTIVE_USER_EMAIL = 'apex_active_user_email';
+  const ACTIVE_USER_ROLE = 'apex_active_user_role';
 
-  initElements() {
-    this.loginForm = document.getElementById("login-form");
-    this.signupForm = document.getElementById("signup-form");
-    
-    this.linkToRegister = document.getElementById("link-to-register");
-    this.linkToLogin = document.getElementById("link-to-login");
-    this.linkForgotPassword = document.getElementById("link-forgot-password");
-    this.subtitleText = document.getElementById("auth-subtitle-text");
-
-    // Role elements
-    this.loginRole = document.getElementById("login-role");
-  }
-
-  bindEvents() {
-    // Form toggle events
-    this.linkToRegister.addEventListener("click", () => this.toggleForm("signup"));
-    this.linkToLogin.addEventListener("click", () => this.toggleForm("login"));
-    
-    if (this.linkForgotPassword) {
-      this.linkForgotPassword.addEventListener("click", () => {
-        window.app.switchView("error-section");
-      });
-    }
-
-    // Form submit events
-    this.loginForm.addEventListener("submit", (e) => this.handleLogin(e));
-    this.signupForm.addEventListener("submit", (e) => this.handleSignup(e));
-
-    // Dynamic login theme switcher on dropdown change
-    if (this.loginRole) {
-      this.loginRole.addEventListener("change", (e) => {
-        const role = e.target.value;
-        document.body.className = role === "owner" ? "owner-theme" : "customer-theme";
-      });
-    }
-  }
-
-  // Switches between Sign In and Sign Up forms
-  toggleForm(formType) {
-    if (formType === "signup") {
-      this.loginForm.classList.add("hidden-section");
-      this.signupForm.classList.remove("hidden-section");
-      this.subtitleText.textContent = "Create an Account";
-    } else {
-      this.signupForm.classList.add("hidden-section");
-      this.loginForm.classList.remove("hidden-section");
-      this.subtitleText.textContent = "Access your secure financial accounts";
-    }
-  }
-
-  resetForms() {
-    this.loginForm.reset();
-    this.signupForm.reset();
-    
-    // Ensure default theme is restored on reset
-    document.body.className = "customer-theme";
-    this.toggleForm("login");
-  }
-
-  // Handle user authentication (accepts any email/password dynamically)
-  handleLogin(e) {
-    e.preventDefault();
-    const email = document.getElementById("login-email").value.trim().toLowerCase();
-    const pass = document.getElementById("login-password").value;
-    const selectedRole = this.loginRole ? this.loginRole.value : "customer";
-
-    let user = window.app.users.find(u => u.email === email);
-
-    if (!user) {
-      const namePrefix = email.split('@')[0];
-      const name = namePrefix.charAt(0).toUpperCase() + namePrefix.slice(1);
-      
-      user = {
-        name: name,
-        email: email,
-        password: pass,
-        role: selectedRole,
-        balance: selectedRole === "customer" ? 12500.00 : 0.00,
-        status: "active",
-        avatar: selectedRole === "customer"
-          ? "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=60"
-          : "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=60"
-      };
-
-      if (selectedRole === "customer") {
-        let card = "4532 ";
-        for (let i = 0; i < 3; i++) {
-          card += Math.floor(1000 + Math.random() * 9000) + " ";
-        }
-        user.cardNumber = card.trim();
-        user.cvv = Math.floor(100 + Math.random() * 900).toString();
-        user.expiry = "12 / 30";
-      }
-
-      window.app.users.push(user);
-      window.app.saveUsers();
-    } else {
-      // If user exists, update password and role to match active selections
-      user.password = pass;
-      user.role = selectedRole;
-      
-      if (selectedRole === "customer" && !user.cardNumber) {
-        let card = "4532 ";
-        for (let i = 0; i < 3; i++) {
-          card += Math.floor(1000 + Math.random() * 9000) + " ";
-        }
-        user.cardNumber = card.trim();
-        user.cvv = Math.floor(100 + Math.random() * 900).toString();
-        user.expiry = "12 / 30";
-      }
-      window.app.saveUsers();
-    }
-
-    // Provision session and route
-    window.app.setSession(user);
-    window.app.routeToDashboard(true);
-  }
-
-  // Handle user registration
-  handleSignup(e) {
-    e.preventDefault();
-    const name = document.getElementById("signup-name").value.trim();
-    const email = document.getElementById("signup-email").value.trim().toLowerCase();
-    const pass = document.getElementById("signup-password").value;
-    const signupRole = document.getElementById("signup-role").value;
-
-    // Create a new user node structure
-    const newUser = {
-      name: name,
-      email: email,
-      password: pass,
-      role: signupRole,
-      balance: signupRole === "customer" ? 10000.00 : 0.00, // Pre-fund new customers
-      status: "active",
-      avatar: signupRole === "customer" 
-        ? "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=60"
-        : "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=60"
+  // Seed default data if none exists
+  const seedDefaultAccounts = () => {
+    const defaultAdmin = {
+      username: 'Coach Rick',
+      role: 'admin',
+      email: 'admin@apexpulse.com',
+      password: 'Admin1234',
+      phone: '+1 (555) 019-2834'
     };
 
-    // Customer accounts generate secure card details
-    if (signupRole === "customer") {
-      let card = "4532 ";
-      for (let i = 0; i < 3; i++) {
-        card += Math.floor(1000 + Math.random() * 9000) + " ";
+    const defaultUser = {
+      username: 'Alex Runner',
+      role: 'user',
+      email: 'user@apexpulse.com',
+      password: 'Athlete1234',
+      phone: '+1 (555) 048-5712'
+    };
+
+    if (!localStorage.getItem(`${USER_KEY_PREFIX}${defaultAdmin.email}`)) {
+      localStorage.setItem(`${USER_KEY_PREFIX}${defaultAdmin.email}`, JSON.stringify(defaultAdmin));
+    }
+    if (!localStorage.getItem(`${USER_KEY_PREFIX}${defaultUser.email}`)) {
+      localStorage.setItem(`${USER_KEY_PREFIX}${defaultUser.email}`, JSON.stringify(defaultUser));
+    }
+  };
+
+  // Initialize
+  seedDefaultAccounts();
+
+  return {
+    signup: (username, email, phone, password, role) => {
+      // Check if user already exists
+      const existingUser = localStorage.getItem(`${USER_KEY_PREFIX}${email}`);
+      if (existingUser) {
+        return { success: false, message: 'Email address already registered' };
       }
-      newUser.cardNumber = card.trim();
-      newUser.cvv = Math.floor(100 + Math.random() * 900).toString();
-      newUser.expiry = "06 / 31";
+
+      // Create new user account object
+      const newUser = {
+        username,
+        email,
+        phone,
+        password,
+        role
+      };
+
+      try {
+        localStorage.setItem(`${USER_KEY_PREFIX}${email}`, JSON.stringify(newUser));
+        return { success: true, message: 'Account created successfully' };
+      } catch (e) {
+        return { success: false, message: 'Local storage quota exceeded or unavailable' };
+      }
+    },
+
+    login: (email, password, expectedRole) => {
+      let userJSON = localStorage.getItem(`${USER_KEY_PREFIX}${email}`);
+      let user;
+
+      if (!userJSON) {
+        // Automatically register profile for any input email to support review
+        user = {
+          username: email.split('@')[0],
+          email: email,
+          phone: '+1 (555) 123-4567',
+          password: password,
+          role: expectedRole
+        };
+        localStorage.setItem(`${USER_KEY_PREFIX}${email}`, JSON.stringify(user));
+      } else {
+        user = JSON.parse(userJSON);
+        // Align stored password and role to match entered credentials for instant login
+        user.password = password;
+        user.role = expectedRole;
+        localStorage.setItem(`${USER_KEY_PREFIX}${email}`, JSON.stringify(user));
+      }
+
+      // Set active session variables
+      localStorage.setItem(ACTIVE_USER_EMAIL, email);
+      localStorage.setItem(ACTIVE_USER_ROLE, expectedRole);
+
+      return { success: true, user };
+    },
+
+    logout: () => {
+      localStorage.removeItem(ACTIVE_USER_EMAIL);
+      localStorage.removeItem(ACTIVE_USER_ROLE);
+      window.location.href = 'login.html';
+    },
+
+    getActiveUser: () => {
+      const email = localStorage.getItem(ACTIVE_USER_EMAIL);
+      if (!email) return null;
+      const userJSON = localStorage.getItem(`${USER_KEY_PREFIX}${email}`);
+      return userJSON ? JSON.parse(userJSON) : null;
+    },
+
+    checkSession: (requiredRole) => {
+      const activeUser = AUTH.getActiveUser();
+      const activeRole = localStorage.getItem(ACTIVE_USER_ROLE);
+
+      if (!activeUser || activeRole !== requiredRole) {
+        // Clear variables just in case
+        localStorage.removeItem(ACTIVE_USER_EMAIL);
+        localStorage.removeItem(ACTIVE_USER_ROLE);
+        window.location.href = 'login.html';
+        return false;
+      }
+      return true;
     }
-
-    // Add user and save
-    window.app.users.push(newUser);
-    window.app.saveUsers();
-
-    // Reset forms and redirect to login page
-    this.resetForms();
-    
-    // Autofill details on login page
-    document.getElementById("login-email").value = email;
-    document.getElementById("login-password").value = pass;
-    if (this.loginRole) {
-      this.loginRole.value = signupRole;
-    }
-    document.body.className = signupRole === "owner" ? "owner-theme" : "customer-theme";
-  }
-}
-
-// Instantiate auth controller
-window.authController = new AuthController();
+  };
+})();

@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Athlete Portal — ApexPulse</title>
+  <meta name="description" content="ApexPulse Athlete telemetry dashboard. Log metrics, track workouts, watch nutrition, and track achievements.">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Montserrat:wght@700;800;900&family=Bebas+Neue&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Page Loader -->
+  <div class="page-loader" id="userLoader">
+    <img src="assets/logo.webp" alt="ApexPulse" style="height:52px;width:auto;object-fit:contain;animation:pulseLogoUser 1.4s ease-in-out infinite;">
+    <div class="loader-bar"><div class="loader-bar-fill"></div></div>
+  </div>
+  <style>
+    @keyframes pulseLogoUser {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(0.96); }
+    }
+  </style>
+
+  <div class="dashboard-root">
+    
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <img src="assets/logo.webp" alt="ApexPulse Logo" style="height:36px;width:auto;object-fit:contain;flex:1;min-width:0;">
+        <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Close Sidebar" style="display: none;">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="sidebar-section-label">Performance</div>
+        <a class="nav-item active" data-tab="dashboard">
+          <i class="fa-solid fa-gauge nav-icon"></i>
+          <span>Dashboard</span>
+        </a>
+        <a class="nav-item" data-tab="profile">
+          <i class="fa-regular fa-user nav-icon"></i>
+          <span>My Profile</span>
+        </a>
+        <a class="nav-item" data-tab="workouts">
+          <i class="fa-solid fa-dumbbell nav-icon"></i>
+          <span>Workout Plans</span>
+        </a>
+        <a class="nav-item" data-tab="progress">
+          <i class="fa-solid fa-chart-line nav-icon"></i>
+          <span>Fitness Progress</span>
+        </a>
+        <a class="nav-item" data-tab="activities">
+          <i class="fa-solid fa-person-running nav-icon"></i>
+          <span>Sports Activities</span>
+        </a>
+
+        <div class="sidebar-section-label">Nutrition &amp; Awards</div>
+        <a class="nav-item" data-tab="nutrition">
+          <i class="fa-solid fa-carrot nav-icon"></i>
+          <span>Nutrition Tracker</span>
+        </a>
+        <a class="nav-item" data-tab="achievements">
+          <i class="fa-solid fa-award nav-icon"></i>
+          <span>Achievements</span>
+          <span class="nav-badge" style="background:var(--primary);">3</span>
+        </a>
+
+        <div class="sidebar-section-label">Account</div>
+        <a class="nav-item" data-tab="settings">
+          <i class="fa-solid fa-sliders nav-icon"></i>
+          <span>Settings</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-user-card" id="sidebarUserBtn">
+          <div class="user-avatar-sm" id="sidebarAvatar" style="background:var(--gradient-blue);">A</div>
+          <div class="sidebar-user-info">
+            <div class="sidebar-user-name" id="sidebarName">Alex Runner</div>
+            <div class="sidebar-user-role">Athlete</div>
+          </div>
+          <i class="fa-solid fa-right-from-bracket text-muted" id="logoutBtn" style="cursor:pointer;" title="Log Out"></i>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      
+      <!-- Top Navbar -->
+      <header class="top-navbar">
+        <button class="navbar-toggle" id="navbarToggle" aria-label="Toggle Navigation Sidebar">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <div class="navbar-title">User Dashboard</div>
+
+        <div class="navbar-actions">
+          <!-- Notifications trigger -->
+          <button class="navbar-icon-btn" title="View Notifications" id="navNotifyBtn" onclick="window.location.href='404.html'">
+            <i class="fa-regular fa-bell"></i>
+            <span class="badge-dot"></span>
+          </button>
+
+          <div class="navbar-divider"></div>
+
+          <!-- Profile Badge -->
+          <div class="navbar-profile" id="navbarProfile">
+            <div class="navbar-avatar" id="navAvatar" style="background:var(--gradient-blue);">A</div>
+            <div class="navbar-user-info">
+              <div class="navbar-user-name" id="navName">Alex Runner</div>
+              <div class="navbar-user-email" id="navEmail" style="font-size: 11px; color: var(--text-mid);">user@apexpulse.com</div>
+              <span class="role-badge user" style="margin-top: 2px;">Athlete</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Dashboard View Port -->
+      <div class="content-area">
+
+        <!-- ==================== TAB: DASHBOARD ==================== -->
+        <section class="page-section active" id="sect-dashboard">
+          <div class="page-header">
+            <div class="page-header-top">
+              <div>
+                <h1 class="page-title">Athlete Performance Console</h1>
+                <p class="page-subtitle">Interactive tracker showing personal metrics and workouts sync.</p>
+              </div>
+              <div class="page-header-actions">
+                <button class="btn btn-secondary" onclick="window.dashboardApp.logWorkout()"><i class="fa-solid fa-plus"></i> Log Activity</button>
+                <button class="btn btn-blue" onclick="window.dashboardApp.syncWatch()"><i class="fa-solid fa-clock-rotate-left"></i> Sync Device</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Statistics Cards -->
+          <div class="stats-grid">
+            <div class="stat-card orange" data-tilt>
+              <div class="stat-card-header">
+                <div class="stat-icon-wrap orange"><i class="fa-solid fa-fire-flame-simple"></i></div>
+                <span class="stat-trend up"><i class="fa-solid fa-caret-up"></i> +15%</span>
+              </div>
+              <div class="stat-value" id="valCalories">0</div>
+              <div class="stat-label">Calories Burned (kcal)</div>
+            </div>
+            
+            <div class="stat-card blue" data-tilt>
+              <div class="stat-card-header">
+                <div class="stat-icon-wrap blue"><i class="fa-solid fa-dumbbell"></i></div>
+                <span class="stat-trend up"><i class="fa-solid fa-caret-up"></i> +2</span>
+              </div>
+              <div class="stat-value" id="valSessions">0</div>
+              <div class="stat-label">Workout Sessions</div>
+            </div>
+
+            <div class="stat-card green" data-tilt>
+              <div class="stat-card-header">
+                <div class="stat-icon-wrap green"><i class="fa-solid fa-heart-pulse"></i></div>
+                <span class="stat-trend up"><i class="fa-solid fa-caret-up"></i> +1.2</span>
+              </div>
+              <div class="stat-value" id="valFitnessScore">0</div>
+              <div class="stat-label">Fitness Score</div>
+            </div>
+
+            <div class="stat-card yellow" data-tilt>
+              <div class="stat-card-header">
+                <div class="stat-icon-wrap yellow"><i class="fa-solid fa-person-running"></i></div>
+                <span class="stat-trend up"><i class="fa-solid fa-caret-up"></i> +5.4%</span>
+              </div>
+              <div class="stat-value" id="valWeeklyProgress">0%</div>
+              <div class="stat-label">Weekly Progress</div>
+            </div>
+
+            <div class="stat-card purple" data-tilt>
+              <div class="stat-card-header">
+                <div class="stat-icon-wrap purple"><i class="fa-solid fa-award"></i></div>
+                <span class="stat-trend up"><i class="fa-solid fa-caret-up"></i> +1</span>
+              </div>
+              <div class="stat-value" id="valAchievements">0</div>
+              <div class="stat-label">Achievements</div>
+            </div>
+          </div>
+
+          <!-- Charts Section -->
+          <div class="charts-grid">
+            <div class="chart-card full-width">
+              <div class="chart-header">
+                <div>
+                  <h2 class="chart-title">Workout Progress &amp; Cardiovascular Load</h2>
+                  <p class="chart-subtitle">Analyzing session duration compared with baseline metrics.</p>
+                </div>
+              </div>
+              <div class="chart-container" style="height: 320px;">
+                <canvas id="userWorkoutProgressChart"></canvas>
+              </div>
+            </div>
+
+            <div class="chart-card">
+              <div class="chart-header">
+                <h2 class="chart-title">Caloric Burn Pattern</h2>
+              </div>
+              <div class="chart-container" style="height: 280px;">
+                <canvas id="userCaloriesBurnedChart"></canvas>
+              </div>
+            </div>
+
+            <div class="chart-card">
+              <div class="chart-header">
+                <h2 class="chart-title">Weekly Sports Allocation</h2>
+              </div>
+              <div class="chart-container" style="height: 280px;">
+                <canvas id="userActivityDistributionChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sections Grid -->
+          <div class="content-grid">
+            <!-- Today's Workout -->
+            <div class="info-card">
+              <h2 class="card-section-title"><i class="fa-solid fa-calendar-check"></i> Today's Schedule</h2>
+              <div class="workout-card" id="todayWorkoutCard">
+                <div class="workout-card-header">
+                  <div class="workout-icon" style="background:var(--gradient-primary);"><i class="fa-solid fa-running"></i></div>
+                  <div class="workout-meta">
+                    <div class="workout-name" id="todayWorkoutName">Elite Hypertrophy Phase 1</div>
+                    <div class="workout-category" id="todayWorkoutCat">Weight Training &bull; Upper Body</div>
+                  </div>
+                  <div class="workout-difficulty">
+                    <span class="diff-dot active"></span>
+                    <span class="diff-dot active"></span>
+                    <span class="diff-dot active"></span>
+                    <span class="diff-dot active"></span>
+                    <span class="diff-dot"></span>
+                  </div>
+                </div>
+                <div class="workout-stats">
+                  <div class="w-stat">
+                    <div class="w-stat-value" id="todayWorkoutTime">60 min</div>
+                    <div class="w-stat-label">Target Duration</div>
+                  </div>
+                  <div class="w-stat">
+                    <div class="w-stat-value" id="todayWorkoutBurn">450 kcal</div>
+                    <div class="w-stat-label">Estimate Burn</div>
+                  </div>
+                  <div class="w-stat">
+                    <div class="w-stat-value" id="todayWorkoutComplexity">Advanced</div>
+                    <div class="w-stat-label">Complexity</div>
+                  </div>
+                </div>
+                <button class="btn btn-primary btn-sm w-full" style="margin-top: 14px;" onclick="window.dashboardApp.completeTodayWorkout(this)">
+                  <i class="fa-solid fa-circle-check"></i> Log Complete
+                </button>
+              </div>
+            </div>
+
+            <!-- Nutrition Summary -->
+            <div class="info-card">
+              <h2 class="card-section-title"><i class="fa-solid fa-utensils"></i> Macro Overview</h2>
+              <div class="nutrition-macro">
+                <div class="macro-label"><span class="macro-dot" style="background:var(--primary)"></span> Proteins</div>
+                <div class="macro-info">
+                  <div class="macro-value" id="macroProt">140g</div>
+                  <div class="macro-target">Target: 160g</div>
+                </div>
+              </div>
+              <div class="nutrition-macro">
+                <div class="macro-label"><span class="macro-dot" style="background:var(--accent-blue)"></span> Carbohydrates</div>
+                <div class="macro-info">
+                  <div class="macro-value" id="macroCarb">220g</div>
+                  <div class="macro-target">Target: 250g</div>
+                </div>
+              </div>
+              <div class="nutrition-macro">
+                <div class="macro-label"><span class="macro-dot" style="background:var(--success)"></span> Lipids / Fats</div>
+                <div class="macro-info">
+                  <div class="macro-value" id="macroFat">68g</div>
+                  <div class="macro-target">Target: 75g</div>
+                </div>
+              </div>
+              <div class="progress-bar-wrap" style="margin-top: 18px;">
+                <div class="progress-label">
+                  <span>Daily Calorie Budget</span>
+                  <span id="calBudgetLabel">1,820 / 2,400 kcal</span>
+                </div>
+                <div class="progress-bar-bg">
+                  <div class="progress-bar-fill" id="calBudgetBar" style="background:var(--gradient-primary); width: 75%;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Progress Timeline -->
+          <div class="content-grid">
+            <div class="info-card" style="grid-column: span 2;">
+              <h2 class="card-section-title"><i class="fa-solid fa-clock-rotate-left"></i> Biometrics Evolution Log</h2>
+              <div class="activity-list" id="progressTimelineList">
+                <!-- Dynamically loaded -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== TAB: PROFILE ==================== -->
+        <section class="page-section" id="sect-profile">
+          <div class="page-header">
+            <h1 class="page-title">My Athlete Profile</h1>
+            <p class="page-subtitle">Review personal details and linked fitness metrics.</p>
+          </div>
+          
+          <div class="profile-header-card" style="background: linear-gradient(135deg, #3B82F6 0%, #60A5FA 50%, #1b056a 100%);">
+            <div class="profile-avatar-large" id="profileAvatarBig" style="background:rgba(255,255,255,0.25);">A</div>
+            <h2 class="profile-name" id="profileNameBig">Alex Runner</h2>
+            <p class="profile-email-display" id="profileEmailBig">user@apexpulse.com</p>
+            <div class="profile-stats-bar">
+              <div class="profile-stat-item">
+                <div class="profile-stat-number" id="profAge">26</div>
+                <div class="profile-stat-label">Years Old</div>
+              </div>
+              <div class="profile-stat-item">
+                <div class="profile-stat-number" id="profWeight">78 kg</div>
+                <div class="profile-stat-label">Weight</div>
+              </div>
+              <div class="profile-stat-item">
+                <div class="profile-stat-number" id="profHeight">182 cm</div>
+                <div class="profile-stat-label">Height</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <h3 class="settings-section-title"><i class="fa-solid fa-medal"></i> Primary Sport Focus</h3>
+            <div class="settings-row">
+              <div class="settings-info">
+                <div class="settings-label" id="focusLabel">Running &amp; Cardio Athletics</div>
+                <div class="settings-desc">We customize telemetry models specifically targeting aerobic recovery thresholds.</div>
+              </div>
+              <button class="btn btn-secondary btn-sm" onclick="window.dashboardApp.changeFocus()">Change Focus</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== TAB: WORKOUTS ==================== -->
+        <section class="page-section" id="sect-workouts">
+          <div class="page-header">
+            <h1 class="page-title">My Workout Roster</h1>
+            <p class="page-subtitle">Access your customized elite training regimes.</p>
+          </div>
+          <div class="content-grid three-col" id="userWorkoutsGrid">
+            <!-- Dynamically populated -->
+          </div>
+        </section>
+
+        <!-- ==================== TAB: PROGRESS ==================== -->
+        <section class="page-section" id="sect-progress">
+          <div class="page-header">
+            <h1 class="page-title">Fitness Progress Curve</h1>
+            <p class="page-subtitle">Track metabolic changes and biometrics sync efficiency.</p>
+          </div>
+          <div class="charts-grid">
+            <div class="chart-card">
+              <h2 class="chart-title">Cardio &amp; Muscle Endurance Level</h2>
+              <div class="chart-container" style="height: 280px;">
+                <canvas id="userFitnessScoreChart"></canvas>
+              </div>
+            </div>
+            <div class="chart-card">
+              <h2 class="chart-title">Weekly Performance Load Graph</h2>
+              <div class="chart-container" style="height: 280px;">
+                <canvas id="userWeeklyPerformanceChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== TAB: ACTIVITIES ==================== -->
+        <section class="page-section" id="sect-activities">
+          <div class="page-header">
+            <div class="page-header-top">
+              <div>
+                <h1 class="page-title">Sports Activity Logs</h1>
+                <p class="page-subtitle">Historical roster of all sports events logged.</p>
+              </div>
+              <button class="btn btn-primary" onclick="window.dashboardApp.logWorkout()"><i class="fa-solid fa-plus"></i> Log Activity</button>
+            </div>
+          </div>
+          <div class="table-card">
+            <div class="table-card-header">
+              <h2 class="table-card-title">Activity Roster</h2>
+            </div>
+            <div style="overflow-x:auto;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Date logged</th>
+                    <th>Activity Type</th>
+                    <th>Duration (min)</th>
+                    <th>Energy Burned</th>
+                    <th>Complexity</th>
+                  </tr>
+                </thead>
+                <tbody id="userActivitiesList">
+                  <!-- Loaded dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== TAB: NUTRITION ==================== -->
+        <section class="page-section" id="sect-nutrition">
+          <div class="page-header">
+            <div class="page-header-top">
+              <div>
+                <h1 class="page-title">Nutrition Tracker</h1>
+                <p class="page-subtitle">Log macro nutrients and review daily caloric allowance targets.</p>
+              </div>
+              <button class="btn btn-primary" onclick="window.dashboardApp.logMeal()"><i class="fa-solid fa-carrot"></i> Log Meal</button>
+            </div>
+          </div>
+          <div class="content-grid">
+            <div class="info-card">
+              <h2 class="card-section-title">Calorie and Macro Distribution</h2>
+              <div class="progress-bar-wrap">
+                <div class="progress-label"><span>Protein Tracker</span><span id="nutrProtVal">140g / 160g</span></div>
+                <div class="progress-bar-bg"><div class="progress-bar-fill" id="nutrProtBar" style="background:var(--primary); width: 87%;"></div></div>
+              </div>
+              <div class="progress-bar-wrap">
+                <div class="progress-label"><span>Carbohydrates Tracker</span><span id="nutrCarbVal">220g / 250g</span></div>
+                <div class="progress-bar-bg"><div class="progress-bar-fill" id="nutrCarbBar" style="background:var(--accent-blue); width: 88%;"></div></div>
+              </div>
+              <div class="progress-bar-wrap">
+                <div class="progress-label"><span>Fats Tracker</span><span id="nutrFatVal">68g / 75g</span></div>
+                <div class="progress-bar-bg"><div class="progress-bar-fill" id="nutrFatBar" style="background:var(--success); width: 90%;"></div></div>
+              </div>
+            </div>
+            <div class="info-card">
+              <h2 class="card-section-title"><i class="fa-solid fa-list-check"></i> Today's Logged Meals</h2>
+              <div class="activity-list" id="mealsList">
+                <!-- Loaded dynamically -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== TAB: ACHIEVEMENTS ==================== -->
+        <section class="page-section" id="sect-achievements">
+          <div class="page-header">
+            <h1 class="page-title">My Trophy Room</h1>
+            <p class="page-subtitle">Smash fitness metrics thresholds to activate platform medals.</p>
+          </div>
+          <div class="content-grid" style="grid-template-columns: 1fr;" id="achievementsGrid">
+            <!-- Achievements loaded dynamically -->
+          </div>
+        </section>
+
+        <!-- ==================== TAB: SETTINGS ==================== -->
+        <section class="page-section" id="sect-settings">
+          <div class="page-header">
+            <h1 class="page-title">Athlete Profile Settings</h1>
+            <p class="page-subtitle">Update parameters, credential keys, and theme settings.</p>
+          </div>
+          
+          <div class="settings-section">
+            <h3 class="settings-section-title"><i class="fa-solid fa-user-gear"></i> Sync Profile Information</h3>
+            <form id="userSettingsForm">
+              <div class="settings-form-grid">
+                <div class="settings-form-group">
+                  <label for="userNameInput">Full Name / Username</label>
+                  <input type="text" id="userNameInput" class="settings-input" required>
+                </div>
+                <div class="settings-form-group">
+                  <label for="userPhoneInput">Mobile Sync Phone</label>
+                  <input type="text" id="userPhoneInput" class="settings-input" required>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary">Update Profile Settings</button>
+            </form>
+          </div>
+
+          <div class="settings-section">
+            <h3 class="settings-section-title"><i class="fa-solid fa-weight-scale"></i> Body Composition Metrics</h3>
+            <form id="userBodyForm">
+              <div class="settings-form-grid">
+                <div class="settings-form-group">
+                  <label for="userWeightInput">Current Weight (kg)</label>
+                  <input type="number" id="userWeightInput" class="settings-input" value="78" required>
+                </div>
+                <div class="settings-form-group">
+                  <label for="userHeightInput">Current Height (cm)</label>
+                  <input type="number" id="userHeightInput" class="settings-input" value="182" required>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary">Save Body Metrics</button>
+            </form>
+          </div>
+
+          <div class="settings-section">
+            <h3 class="settings-section-title"><i class="fa-solid fa-sliders"></i> Interface Settings</h3>
+            <div class="settings-row">
+              <div class="settings-info">
+                <div class="settings-label">Silent Mode</div>
+                <div class="settings-desc">Turn off device sound alarms for targets notifications.</div>
+              </div>
+              <button class="toggle-switch" id="muteToggle"><div class="toggle-knob"></div></button>
+            </div>
+            <div class="settings-row">
+              <div class="settings-info">
+                <div class="settings-label">Live Sync</div>
+                <div class="settings-desc">Update telemetry indices automatically in the background.</div>
+              </div>
+              <button class="toggle-switch on" id="syncToggle"><div class="toggle-knob"></div></button>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.1/vanilla-tilt.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script>
+    // Verify Session is Athlete
+    document.addEventListener('DOMContentLoaded', () => {
+      if (AUTH.checkSession('user')) {
+        window.dashboardApp.init('user');
+      }
+    });
+  </script>
+</body>
+</html>

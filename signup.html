@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up — ApexPulse Fitness Platform</title>
+  <meta name="description" content="Join ApexPulse — Register a new athlete or coach account to optimize metrics.">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Montserrat:wght@700;800;900&family=Bebas+Neue&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #1b056a;
+      --primary-dark: #070a6d;
+      --accent-blue: #3B82F6;
+      --white: #FFFFFF;
+      --off-white: #F8FAFC;
+      --light-gray: #F1F5F9;
+      --mid-gray: #E2E8F0;
+      --border-gray: #CBD5E1;
+      --text-light: #94A3B8;
+      --text-mid: #64748B;
+      --text-dark: #334155;
+      --text-black: #0F172A;
+      --success: #10B981;
+      --danger: #EF4444;
+      --shadow-lg: 0 20px 60px rgba(0,0,0,0.12);
+      --shadow-orange: 0 8px 32px rgba(27, 5, 106,0.35);
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+      --radius-full: 9999px;
+    }
+    html, body { height: 100%; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--off-white);
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    /* ---- Page Loader ---- */
+    #pageLoader {
+      position: fixed; inset: 0;
+      background: white;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 14px; z-index: 9999;
+    }
+    .loader-logo-img {
+      height: 56px;
+      width: auto;
+      object-fit: contain;
+      animation: pulseLogo 1.4s ease-in-out infinite;
+      filter: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='color'%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.10588 0 0 0 0 0.0196 0 0 0 0 0.41568 0 0 0 1 0'/%3E%3C/filter%3E%3C/svg%3E#color");
+    }
+    @keyframes pulseLogo {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(0.96); }
+    }
+    .loader-track {
+      width: 180px; height: 3px;
+      background: var(--mid-gray); border-radius: 99px; overflow: hidden;
+    }
+    .loader-fill {
+      height: 100%; width: 0;
+      background: linear-gradient(90deg, #1b056a, #17045b);
+      border-radius: 99px;
+      animation: fillBar 1s ease forwards;
+    }
+    @keyframes fillBar { to { width: 100%; } }
+
+    /* ---- Auth Layout ---- */
+    .auth-wrapper {
+      display: grid;
+      grid-template-columns: 1fr 1.1fr;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ---- Left Showcase ---- */
+    .showcase-panel {
+      position: relative;
+      background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0F172A 100%);
+      display: flex; flex-direction: column;
+      justify-content: flex-end;
+      padding: 48px;
+      overflow: hidden;
+    }
+
+    .showcase-bg-img {
+      position: absolute; inset: 0;
+      object-fit: cover; width: 100%; height: 100%;
+      opacity: 0.35;
+    }
+
+    .showcase-gradient {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(15,23,42,0.95) 0%, rgba(15,23,42,0.4) 50%, rgba(15,23,42,0.2) 100%);
+    }
+   
+
+    /* Floating Blobs */
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(60px);
+      opacity: 0.15;
+      pointer-events: none;
+    }
+    .blob-1 {
+      width: 300px; height: 300px;
+      background: #1b056a;
+      top: -80px; left: -80px;
+    }
+    .blob-2 {
+      width: 200px; height: 200px;
+      background: #3B82F6;
+      top: 40%; right: -40px;
+    }
+    .blob-3 {
+      width: 250px; height: 250px;
+      background: #1b056a;
+      bottom: 30%; left: 20%;
+    }
+
+    /* Showcase Content */
+    .showcase-content { position: relative; z-index: 2; }
+   .brand-mark {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 32px;
+    }
+    .brand-logo-img {
+      height: 44px;
+      width: auto;
+      object-fit: contain;
+      filter: brightness(0) invert(1);
+    }
+       .brand-marks {
+  display: flex;
+  justify-content: center; /* Horizontally centers the image */
+  align-items: center;
+  width: 100%;             /* Ensures it spans the full width of the card */
+  margin-bottom: 20px;     /* Optional: Adds spacing below the logo */
+}
+.logo-img {
+  height: 50px; /* Adjust height as needed */
+  width: auto;  /* Maintains aspect ratio */
+  object-fit: contain;
+  filter: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='color'%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.10588 0 0 0 0 0.0196 0 0 0 0 0.41568 0 0 0 1 0'/%3E%3C/filter%3E%3C/svg%3E#color");
+}
+ 
+
+    .showcase-headline {
+      font-family: 'Bebas Neue', cursive;
+      font-size: 64px; line-height: 1;
+      color: white; margin-bottom: 16px;
+      letter-spacing: 1px;
+    }
+    .showcase-headline .accent { color: #1b056a; }
+
+    .showcase-desc {
+      font-size: 15px; color: rgba(255,255,255,0.65);
+      line-height: 1.7; max-width: 380px;
+      margin-bottom: 28px;
+    }
+
+    /* ---- Right Form Side ---- */
+    .form-panel {
+      background: var(--white);
+      padding: 15px 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      height: 100%;
+      overflow-y: auto;
+    }
+
+    .form-card {
+      width: 100%; max-width: 500px;
+      margin: 0 auto;
+      padding: 0;
+    }
+
+    .back-home {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 13px; font-weight: 600; color: var(--text-mid);
+      margin-bottom: 12px; transition: color 0.2s;
+    }
+    .back-home:hover { color: var(--primary); }
+
+    .form-header { margin-bottom: 12px; }
+    .form-greeting {
+      font-size: 12px; font-weight: 600;
+      color: var(--primary); text-transform: uppercase;
+      letter-spacing: 1.5px; margin-bottom: 4px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .form-title {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 24px; font-weight: 800;
+      color: var(--text-black); letter-spacing: -0.5px;
+      margin-bottom: 2px;
+    }
+    .form-subtitle { font-size: 13px; color: var(--text-mid); }
+
+    /* Role Selector */
+    .role-selector {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 10px; margin-bottom: 10px;
+    }
+    .role-option { display: none; }
+    .role-label {
+      display: flex; align-items: center; justify-content: center;
+      gap: 8px; padding: 6px 10px;
+      border: 2px solid var(--mid-gray);
+      border-radius: var(--radius-md);
+      font-size: 12.5px; font-weight: 600; color: var(--text-mid);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+    .role-label:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: rgba(27, 5, 106,0.04);
+    }
+    .role-option:checked + .role-label {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: rgba(27, 5, 106,0.08);
+    }
+
+    /* Grid Form */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .grid-full {
+      grid-column: span 2;
+    }
+
+    /* Input Groups */
+    .input-group {
+      position: relative;
+    }
+    .input-label {
+      display: block;
+      font-size: 12px; font-weight: 600;
+      color: var(--text-dark); margin-bottom: 4px;
+    }
+    .input-wrapper {
+      position: relative;
+    }
+    .input-icon {
+      position: absolute; left: 11px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-light); font-size: 13px;
+      pointer-events: none;
+      transition: color 0.2s;
+    }
+    .form-input {
+      width: 100%;
+      height: 38px;
+      padding: 0 14px 0 34px;
+      border: 2px solid var(--mid-gray);
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      color: var(--text-black);
+      background: var(--off-white);
+      outline: none;
+      transition: all 0.2s ease;
+      font-family: 'Poppins', sans-serif;
+    }
+    .form-input:focus {
+      border-color: var(--primary);
+      background: white;
+      box-shadow: 0 0 0 3px rgba(27, 5, 106,0.1);
+    }
+    .form-input:focus + .input-icon,
+    .input-wrapper:focus-within .input-icon {
+      color: var(--primary);
+    }
+    .form-input.error { border-color: var(--danger); background: rgba(239,68,68,0.03); }
+    .form-input.success { border-color: var(--success); }
+
+    .toggle-pass {
+      position: absolute; right: 14px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-light); font-size: 14px;
+      cursor: pointer; background: none; border: none;
+      padding: 0; transition: color 0.2s;
+    }
+    .toggle-pass:hover { color: var(--primary); }
+
+    .field-error {
+      font-size: 11px; color: var(--danger);
+      margin-top: 4px; display: none;
+    }
+    .field-error.show { display: block; }
+
+    /* Password match indicator */
+    .password-match-hint {
+      font-size: 11px;
+      margin-top: 4px;
+      display: none;
+      align-items: center;
+      gap: 5px;
+    }
+    .password-match-hint.show { display: flex; }
+    .password-match-hint.match { color: var(--success); }
+    .password-match-hint.no-match { color: var(--danger); }
+
+    /* Checkbox layout */
+    .check-row {
+      display: flex; flex-direction: column; gap: 6px;
+      margin-bottom: 10px;
+    }
+    .checkbox-item {
+      display: flex; align-items: center; gap: 8px;
+      cursor: pointer; user-select: none;
+    }
+    .checkbox-item input { display: none; }
+    .check-box {
+      width: 16px; height: 16px;
+      border: 2px solid var(--border-gray);
+      border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px; color: transparent;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    .checkbox-item input:checked ~ .check-box {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+    }
+    .checkbox-text { font-size: 12px; color: var(--text-mid); }
+    .checkbox-text a { color: var(--primary); font-weight: 600; }
+
+    /* Submit Button */
+    .submit-btn {
+      width: 100%; height: 42px;
+      background: linear-gradient(135deg, #1b056a, #031561);
+      color: white; border: none; border-radius: var(--radius-md);
+      font-size: 14px; font-weight: 700;
+      font-family: 'Poppins', sans-serif;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: all 0.25s ease;
+      box-shadow: 0 5px 15px rgba(27, 5, 106,0.3);
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    .submit-btn::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: rgba(255,255,255,0);
+      transition: background 0.2s;
+    }
+    .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(27, 5, 106,0.5); }
+    .submit-btn:hover::before { background: rgba(255,255,255,0.08); }
+    .submit-btn:active { transform: translateY(0); }
+    .submit-btn.loading { opacity: 0.8; pointer-events: none; }
+
+    .btn-spinner {
+      width: 18px; height: 18px;
+      border: 2.5px solid rgba(255,255,255,0.4);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+    .submit-btn.loading .btn-spinner { display: block; }
+    .submit-btn.loading .btn-text { display: none; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .switch-link {
+      text-align: center;
+      font-size: 13px; color: var(--text-mid);
+    }
+    .switch-link a {
+      color: var(--primary); font-weight: 700;
+      transition: opacity 0.2s;
+    }
+    .switch-link a:hover { opacity: 0.75; }
+
+    /* Alert banner */
+    .alert-banner {
+      padding: 10px 14px;
+      border-radius: var(--radius-md);
+      font-size: 12.5px; font-weight: 500;
+      display: none; align-items: center; gap: 8px;
+      margin-bottom: 14px;
+    }
+    .alert-banner.show { display: flex; }
+    .alert-banner.error { background: rgba(239,68,68,0.1); color: var(--danger); border: 1px solid rgba(239,68,68,0.2); }
+    .alert-banner.success { background: rgba(16,185,129,0.1); color: #059669; border: 1px solid rgba(16,185,129,0.2); }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .auth-wrapper { grid-template-columns: 1fr; }
+      .showcase-panel { display: none; }
+      .form-panel {
+        padding: 20px;
+        background: linear-gradient(160deg, rgba(15,23,42,0.88) 0%, rgba(30,15,5,0.92) 100%),
+          url('assets/sport_basketball.webp') center/cover no-repeat;
+      }
+      .form-card {
+        background: rgba(255,255,255,0.96);
+        border-radius: 20px;
+        padding: 22px 20px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.1);
+      }
+      .form-grid { grid-template-columns: 1fr; gap: 12px; }
+      .grid-full { grid-column: span 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Page Loader -->
+  <div id="pageLoader">
+    <img src="assets/logo.webp" alt="ApexPulse" class="loader-logo-img">
+    <div class="loader-track"><div class="loader-fill"></div></div>
+  </div>
+
+  <!-- Auth Wrapper -->
+  <div class="auth-wrapper" id="authWrapper" style="opacity:0">
+
+    <!-- Left: Showcase Panel -->
+    <div class="showcase-panel">
+      <img class="showcase-bg-img" src="assets/sport_basketball.webp" alt="High Performance Athletics">
+      <div class="showcase-gradient"></div>
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
+
+      <div class="showcase-content">
+        <div class="brand-mark">
+          <img src="assets/logo.webp" alt="ApexPulse Logo" class="brand-logo-img">
+        </div>
+        <h1 class="showcase-headline">
+          OPTIMIZE.<br><span class="accent">CONQUER.</span>
+        </h1>
+        <p class="showcase-desc">
+          Calibrate custom dynamic workout blocks, track nutrition targets, and visualize biometric improvements.
+        </p>
+      </div>
+    </div>
+
+    <!-- Right: Form Panel -->
+    <div class="form-panel">
+      <div class="form-card" id="formCard">
+
+        <a href="index.html" class="back-home"><i class="fa-solid fa-arrow-left"></i> Back to Home</a>
+
+        <div class="form-header">
+          <div class="brand-marks">
+          <img src="assets/logo.webp" alt="ApexPulse Logo" class="logo-img">
+        </div>
+          <div class="form-greeting">
+            <i class="fa-solid fa-user-plus"></i> Join the Elite
+          </div>
+          <h1 class="form-title">Create Account</h1>
+          <p class="form-subtitle">Enlist your athletic profile to sync data targets.</p>
+        </div>
+
+        <!-- Alert Banner -->
+        <div class="alert-banner" id="alertBanner">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <span id="alertMsg">Something went wrong</span>
+        </div>
+
+        <!-- Form -->
+        <form id="signupForm">
+          
+          <!-- Role Selector -->
+          <div class="role-selector">
+            <input type="radio" name="signupRole" id="roleUser" value="user" class="role-option" checked>
+            <label for="roleUser" class="role-label">
+              <i class="fa-solid fa-person-running"></i> Athlete
+            </label>
+            <input type="radio" name="signupRole" id="roleAdmin" value="admin" class="role-option">
+            <label for="roleAdmin" class="role-label">
+              <i class="fa-solid fa-user-shield"></i> Admin / Coach
+            </label>
+          </div>
+
+          <div class="form-grid">
+            <div class="input-group grid-full">
+              <label class="input-label" for="username">Full Name / Username</label>
+              <div class="input-wrapper">
+                <i class="fa-regular fa-user input-icon"></i>
+                <input type="text" id="username" class="form-input" placeholder="e.g. Alex Runner" required>
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label class="input-label" for="email">Email Address</label>
+              <div class="input-wrapper">
+                <i class="fa-regular fa-envelope input-icon"></i>
+                <input type="email" id="email" class="form-input" placeholder="alex@example.com" required>
+              </div>
+            </div>
+
+
+            <div class="input-group">
+              <label class="input-label" for="password">Password</label>
+              <div class="input-wrapper">
+                <i class="fa-solid fa-lock input-icon"></i>
+                <input type="password" id="password" class="form-input" placeholder="••••••••" required>
+                <button type="button" class="toggle-pass" id="togglePass">
+                  <i class="fa-regular fa-eye"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label class="input-label" for="confirmPassword">Confirm Password</label>
+              <div class="input-wrapper">
+                <i class="fa-solid fa-shield-halved input-icon"></i>
+                <input type="password" id="confirmPassword" class="form-input" placeholder="••••••••" required>
+                <button type="button" class="toggle-pass" id="toggleConfirmPass">
+                  <i class="fa-regular fa-eye"></i>
+                </button>
+              </div>
+              <div class="password-match-hint" id="passwordMatchHint">
+                <i class="fa-solid fa-circle-check"></i>
+                <span id="passwordMatchText">Passwords match</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="check-row">
+          
+            <label class="checkbox-item" for="terms">
+              <input type="checkbox" id="terms">
+              <div class="check-box"><i class="fa-solid fa-check"></i></div>
+              <span class="checkbox-text">I agree to the <a href="404.html"><i class="fa-solid fa-file-contract"></i> Terms &amp; Conditions</a> and <a href="404.html"><i class="fa-solid fa-shield-halved"></i> Privacy Policy</a></span>
+            </label>
+          </div>
+
+          <button type="submit" class="submit-btn" id="signupBtn">
+            <div class="btn-spinner"></div>
+            <span class="btn-text">
+              <i class="fa-solid fa-user-plus"></i> Create Account
+            </span>
+          </button>
+        </form>
+
+        <div class="switch-link">
+          Already have an account? <a href="login.html"><i class="fa-solid fa-right-to-bracket"></i> Sign In</a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    // Page Loader
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        gsap.to('#pageLoader', {
+          opacity: 0, duration: 0.5, delay: 0.5,
+          onComplete: () => {
+            document.getElementById('pageLoader').style.display = 'none';
+          }
+        });
+        gsap.to('#authWrapper', {
+          opacity: 1, duration: 0.6, delay: 0.8
+        });
+        // Stagger animations
+        gsap.from('.showcase-panel .brand-mark', { y: 30, opacity: 0, duration: 0.7, delay: 1, clearProps: "all" });
+        gsap.from('.showcase-headline', { y: 40, opacity: 0, duration: 0.7, delay: 1.15, clearProps: "all" });
+        gsap.from('.showcase-desc', { y: 20, opacity: 0, duration: 0.6, delay: 1.3, clearProps: "all" });
+        gsap.from('.form-header', { x: 40, opacity: 0, duration: 0.7, delay: 1.1, clearProps: "all" });
+        gsap.from('.role-selector', { y: 20, opacity: 0, duration: 0.5, delay: 1.25, clearProps: "all" });
+        gsap.from('.input-group', { y: 15, opacity: 0, duration: 0.4, stagger: 0.08, delay: 1.35, clearProps: "all" });
+        gsap.from('.check-row, .submit-btn, .switch-link', {
+          y: 15, opacity: 0, duration: 0.4, stagger: 0.08, delay: 1.7, clearProps: "all"
+        });
+      }, 200);
+    });
+
+    // Blob animation
+    gsap.to('.blob-1', { x: 40, y: 30, duration: 6, ease: 'sine.inOut', yoyo: true, repeat: -1 });
+    gsap.to('.blob-2', { x: -30, y: -20, duration: 5, ease: 'sine.inOut', yoyo: true, repeat: -1 });
+    gsap.to('.blob-3', { x: 20, y: 40, duration: 7, ease: 'sine.inOut', yoyo: true, repeat: -1 });
+
+    // Password toggle - main password
+    document.getElementById('togglePass').addEventListener('click', function() {
+      const inp = document.getElementById('password');
+      const icon = this.querySelector('i');
+      if (inp.type === 'password') {
+        inp.type = 'text';
+        icon.className = 'fa-regular fa-eye-slash';
+      } else {
+        inp.type = 'password';
+        icon.className = 'fa-regular fa-eye';
+      }
+    });
+
+    // Password toggle - confirm password
+    document.getElementById('toggleConfirmPass').addEventListener('click', function() {
+      const inp = document.getElementById('confirmPassword');
+      const icon = this.querySelector('i');
+      if (inp.type === 'password') {
+        inp.type = 'text';
+        icon.className = 'fa-regular fa-eye-slash';
+      } else {
+        inp.type = 'password';
+        icon.className = 'fa-regular fa-eye';
+      }
+    });
+
+    // Password match live validation
+    function checkPasswordMatch() {
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      const hint = document.getElementById('passwordMatchHint');
+      const hintText = document.getElementById('passwordMatchText');
+      const hintIcon = hint.querySelector('i');
+      const confirmInput = document.getElementById('confirmPassword');
+
+      if (confirmPassword.length === 0) {
+        hint.classList.remove('show', 'match', 'no-match');
+        confirmInput.classList.remove('error', 'success');
+        return;
+      }
+
+      hint.classList.add('show');
+      if (password === confirmPassword) {
+        hint.classList.add('match');
+        hint.classList.remove('no-match');
+        hintIcon.className = 'fa-solid fa-circle-check';
+        hintText.textContent = 'Passwords match';
+        confirmInput.classList.add('success');
+        confirmInput.classList.remove('error');
+      } else {
+        hint.classList.add('no-match');
+        hint.classList.remove('match');
+        hintIcon.className = 'fa-solid fa-circle-xmark';
+        hintText.textContent = 'Passwords do not match';
+        confirmInput.classList.add('error');
+        confirmInput.classList.remove('success');
+      }
+    }
+
+    document.getElementById('password').addEventListener('input', checkPasswordMatch);
+    document.getElementById('confirmPassword').addEventListener('input', checkPasswordMatch);
+
+    // Form submission - goes directly to login page without checking existing data
+    document.getElementById('signupForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const username = document.getElementById('username').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      const role = document.querySelector('input[name="signupRole"]:checked').value;
+
+      // Validate passwords match
+      if (password !== confirmPassword) {
+        const banner = document.getElementById('alertBanner');
+        banner.className = 'alert-banner error show';
+        document.getElementById('alertMsg').textContent = 'Passwords do not match. Please check and try again.';
+        gsap.from('#alertBanner', { y: -10, opacity: 0, duration: 0.3 });
+        gsap.to('#formCard', { x: -8, duration: 0.07, yoyo: true, repeat: 5 });
+        return;
+      }
+
+      // Reset alert
+      document.getElementById('alertBanner').classList.remove('show');
+
+      const btn = document.getElementById('signupBtn');
+      btn.classList.add('loading');
+
+      setTimeout(() => {
+        btn.classList.remove('loading');
+
+        // Save user to localStorage (overwrite if exists — no duplicate check)
+        const newUser = { username, email, phone, password, role };
+        try {
+          localStorage.setItem('apex_profile_' + email, JSON.stringify(newUser));
+        } catch(e) { /* ignore storage errors */ }
+
+        const banner = document.getElementById('alertBanner');
+        banner.className = 'alert-banner success show';
+        document.getElementById('alertMsg').textContent = 'Account created successfully! Redirecting to login...';
+        gsap.from('#alertBanner', { y: -10, opacity: 0, duration: 0.3 });
+
+        setTimeout(() => {
+          gsap.to('#formCard', {
+            scale: 0.97, opacity: 0, duration: 0.4,
+            onComplete: () => {
+              window.location.href = 'login.html';
+            }
+          });
+        }, 1200);
+      }, 1200);
+    });
+  </script>
+</body>
+</html>

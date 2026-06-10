@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Telemetry Terminal — ApexPulse</title>
+  <meta name="description" content="ApexPulse Coach & Admin Panel. Manage members, monitor metrics, view analytics dashboards.">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Montserrat:wght@700;800;900&family=Bebas+Neue&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Page Loader -->
+  <div class="page-loader" id="adminLoader">
+    <img src="assets/logo.webp" alt="ApexPulse" style="height:52px;width:auto;object-fit:contain;animation:pulseLogoAdmin 1.4s ease-in-out infinite;">
+    <div class="loader-bar"><div class="loader-bar-fill"></div></div>
+  </div>
+  <style>
+    @keyframes pulseLogoAdmin {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(0.96); }
+    }
+  </style>
+
+  <div class="dashboard-root">
+    
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <img src="assets/logo.webp" alt="ApexPulse Logo" style="height:36px;width:auto;object-fit:contain;flex:1;min-width:0;">
+        <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Close Sidebar" style="display: none;">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="sidebar-section-label">General</div>
+        <a class="nav-item active" data-tab="dashboard">
+          <i class="fa-solid fa-chart-line nav-icon"></i>
+          <span>Dashboard</span>
+        </a>
+        <a class="nav-item" data-tab="members">
+          <i class="fa-solid fa-users nav-icon"></i>
+          <span>Members Management</span>
+         
+        </a>
+        <a class="nav-item" data-tab="trainers">
+          <i class="fa-solid fa-user-ninja nav-icon"></i>
+          <span>Trainers Management</span>
+        </a>
+
+        <div class="sidebar-section-label">Programs &amp; Analytics</div>
+        <a class="nav-item" data-tab="programs">
+          <i class="fa-solid fa-dumbbell nav-icon"></i>
+          <span>Workout Programs</span>
+        </a>
+        <a class="nav-item" data-tab="categories">
+          <i class="fa-solid fa-tags nav-icon"></i>
+          <span>Sports Categories</span>
+        </a>
+        <a class="nav-item" data-tab="analytics">
+          <i class="fa-solid fa-chart-pie nav-icon"></i>
+          <span>Analytics</span>
+        </a>
+        <a class="nav-item" data-tab="reports">
+          <i class="fa-solid fa-file-invoice-dollar nav-icon"></i>
+          <span>Reports</span>
+        </a>
+
+        <div class="sidebar-section-label">Account</div>
+        <a class="nav-item" data-tab="notifications">
+          <i class="fa-solid fa-bell nav-icon"></i>
+          <span>Notifications</span>
+          <span class="nav-badge" style="background:var(--accent-blue)">4</span>
+        </a>
+        <a class="nav-item" data-tab="settings">
+          <i class="fa-solid fa-gears nav-icon"></i>
+          <span>Settings</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-user-card" id="sidebarUserBtn">
+          <div class="user-avatar-sm" id="sidebarAvatar">A</div>
+          <div class="sidebar-user-info">
+            <div class="sidebar-user-name" id="sidebarName">Admin Coach</div>
+            <div class="sidebar-user-role">Coach / Admin</div>
+          </div>
+          <i class="fa-solid fa-right-from-bracket text-muted" id="logoutBtn" style="cursor:pointer;" title="Log Out"></i>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      
+      <!-- Top Navbar -->
+      <header class="top-navbar">
+        <button class="navbar-toggle" id="navbarToggle" aria-label="Toggle Navigation Sidebar">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <div class="navbar-title">Admin Dashboard</div>
+
+        <div class="navbar-actions">
+          <!-- Notifications trigger -->
+          <button class="navbar-icon-btn" title="View Notifications" id="navNotifyBtn">
+            <i class="fa-regular fa-bell"></i>
+            <span class="badge-dot"></span>
+          </button>
+
+          <div class="navbar-divider"></div>
+
+          <!-- Profile Badge -->
+          <div class="navbar-profile" id="navbarProfile">
+            <div class="navbar-avatar" id="navAvatar">A</div>
+            <div class="navbar-user-info">
+              <div class="navbar-user-name" id="navName">Admin Coach</div>
+              <div class="navbar-user-email" id="navEmail" style="font-size: 11px; color: var(--text-mid);">admin@apexpulse.com</div>
+              <span class="role-badge admin" style="margin-top: 2px;">Admin</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Dashboard View Port -->
+      <div class="content-area">
+
+        <!-- ==================== TAB: DASHBOARD ==================== -->
+        <section class="page-section active" id="sect-dashboard">
+          <div class="page-header">
+            <div class="page-header-top">
+              <div>
+                <h1 class="page-title">Sports Performance Telemetry</h1>
+                <p class="page-subtitle">Unified coach dashboard showing current athlete status metrics.</p>
+              </div>
+              <div class="page-header-actions">
+                <button class="btn btn-secondary" onclick="window.dashboardApp.exportReport()"><i class="fa-solid fa-file-export"></i> Export Logs</button>
+                <button class="btn btn-primary" onclick="window.dashboardApp.addNewMember()"><i class="fa-solid fa-user-plus"></i> Add Athlete</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Statistics Cards -->
+          <div class="stats-grid">
+            <div class="stat-card orange" data-tilt>
+              <div class="stat-card-header">
+                <div class="stat-icon-wrap orange"><i class="fa-solid fa-users"></i></div>
+                <span class="stat-trend up"><i class="fa-solid fa-caret-up"></i> +12%</span>
+              </div>
+              <div class="stat-value" id="valTotalUsers">0</div>
+              <div class="stat-label">Total Users</div>
+            </div>
+            
+            <div class="stat-card blue" data-tilt>
+              <div class="stat-card-header">
+                <div class="stat-icon-wrap blue"><i class="fa-solid fa-user-ninja"></i></div>
+                <span class="stat-trend up"><i class="fa-solid fa-caret-up"></i> +4%</span>
+              </div>
+              <div class="stat-value" id="valTotalTrainers">0</div>
+              <div class="stat-label">Total Trainers</div>
+            </div>
+
+            <div class="stat-card green" data-tilt>
+              <div class="stat-card-header">
+                <div class="stat-icon-wrap green"><i class="fa-solid fa-dumbbell"></i></div>
+                <span class="stat-trend up"><i class="fa-solid fa-caret-up"></i> +8%</span>
+              </div>
+              <div class="stat-value" id="valTotalPrograms">0</div>
+              <div class="stat-label">Total Programs</div>
+            </div>
+
+            <div class="stat-card yellow" data-tilt>
+              <div class="stat-card-header">
+                <div class="stat-icon-wrap yellow"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                <span class="stat-trend up"><i class="fa-solid fa-caret-up"></i> +18%</span>
+              </div>
+              <div class="stat-value" id="valMonthlyRevenue">$0</div>
+              <div class="stat-label">Monthly Revenue</div>
+            </div>
+
+            <div class="stat-card purple" data-tilt>
+              <div class="stat-card-header">
+                <div class="stat-icon-wrap purple"><i class="fa-solid fa-circle-check"></i></div>
+                <span class="stat-trend up"><i class="fa-solid fa-caret-up"></i> +14%</span>
+              </div>
+              <div class="stat-value" id="valActiveMembers">0</div>
+              <div class="stat-label">Active Members</div>
+            </div>
+          </div>
+
+          <!-- Charts Section -->
+          <div class="charts-grid">
+            <div class="chart-card full-width">
+              <div class="chart-header">
+                <div>
+                  <h2 class="chart-title">Membership Growth &amp; Performance Curve</h2>
+                  <p class="chart-subtitle">Analyzing dynamic enlistment and weekly metrics verification rates.</p>
+                </div>
+              </div>
+              <div class="chart-container" style="height: 320px;">
+                <canvas id="membershipGrowthChart"></canvas>
+              </div>
+            </div>
+
+            <div class="chart-card">
+              <div class="chart-header">
+                <h2 class="chart-title">Revenue Distribution Model</h2>
+              </div>
+              <div class="chart-container" style="height: 280px;">
+                <canvas id="revenueAnalyticsChart"></canvas>
+              </div>
+            </div>
+
+            <div class="chart-card">
+              <div class="chart-header">
+                <h2 class="chart-title">Participation Rates by Sport</h2>
+              </div>
+              <div class="chart-container" style="height: 280px;">
+                <canvas id="sportsParticipationChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tables Grid -->
+          <div class="content-grid">
+            <div class="table-card" style="grid-column: span 2;">
+              <div class="table-card-header">
+                <h2 class="table-card-title">Recent Member Telemetry Enlistment</h2>
+                <div class="table-search">
+                  <i class="fa-solid fa-magnifying-glass"></i>
+                  <input type="text" placeholder="Filter this table..." id="recentMembersSearch">
+                </div>
+              </div>
+              <div style="overflow-x:auto;">
+                <table class="data-table" id="recentMembersTable">
+                  <thead>
+                    <tr>
+                      <th onclick="window.dashboardApp.sortTable('name')">Name &amp; Email <i class="fa-solid fa-sort"></i></th>
+                      <th onclick="window.dashboardApp.sortTable('role')">Role Badge <i class="fa-solid fa-sort"></i></th>
+                      <th onclick="window.dashboardApp.sortTable('phone')">Mobile Sync <i class="fa-solid fa-sort"></i></th>
+                      <th onclick="window.dashboardApp.sortTable('status')">Terminal Status <i class="fa-solid fa-sort"></i></th>
+                      <th>Quick Commands</th>
+                    </tr>
+                  </thead>
+                  <tbody id="recentMembersList">
+                    <!-- Loaded dynamically -->
+                  </tbody>
+                </table>
+              </div>
+              <div class="table-footer">
+                <span class="table-info">Displaying latest operational logs</span>
+                <div class="pagination">
+                  <button class="page-btn active">1</button>
+                  <button class="page-btn">2</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="content-grid">
+            <!-- Recent Activities -->
+            <div class="info-card">
+              <h2 class="card-section-title"><i class="fa-solid fa-person-running"></i> Recent Activities</h2>
+              <div class="activity-list" id="recentActivitiesList">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+
+            <!-- Upcoming Events -->
+            <div class="info-card">
+              <h2 class="card-section-title"><i class="fa-solid fa-calendar-days"></i> Upcoming Training Sessions</h2>
+              <div class="activity-list" id="upcomingEventsList">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== TAB: MEMBERS ==================== -->
+        <section class="page-section" id="sect-members">
+          <div class="page-header">
+            <div class="page-header-top">
+              <div>
+                <h1 class="page-title">Members Management</h1>
+                <p class="page-subtitle">Monitor and verify athlete status across sports streams.</p>
+              </div>
+              <button class="btn btn-primary" onclick="window.dashboardApp.addNewMember()"><i class="fa-solid fa-user-plus"></i> Add New Member</button>
+            </div>
+          </div>
+          <div class="table-card">
+            <div class="table-card-header">
+              <h2 class="table-card-title">All Athlete Accounts</h2>
+              <div class="table-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Search members..." id="membersManageSearch">
+              </div>
+            </div>
+            <div style="overflow-x:auto;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Email Address</th>
+                    <th>Role Group</th>
+                    <th>Telemetry Phone</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="allMembersList">
+                  <!-- Dynamically populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== TAB: TRAINERS ==================== -->
+        <section class="page-section" id="sect-trainers">
+          <div class="page-header">
+            <div class="page-header-top">
+              <div>
+                <h1 class="page-title">Trainers Management</h1>
+                <p class="page-subtitle">Assigned coaches and tactical consultants roster.</p>
+              </div>
+              <button class="btn btn-primary" onclick="window.dashboardApp.addNewTrainer()"><i class="fa-solid fa-user-ninja"></i> Register Trainer</button>
+            </div>
+          </div>
+          <div class="content-grid three-col" id="trainersGrid">
+            <!-- Roster loaded dynamically -->
+          </div>
+        </section>
+
+        <!-- ==================== TAB: PROGRAMS ==================== -->
+        <section class="page-section" id="sect-programs">
+          <div class="page-header">
+            <div class="page-header-top">
+              <div>
+                <h1 class="page-title">Workout Programs</h1>
+                <p class="page-subtitle">Publish and schedule new workout templates.</p>
+              </div>
+              <button class="btn btn-primary" onclick="window.dashboardApp.addNewProgram()"><i class="fa-solid fa-plus"></i> New Program</button>
+            </div>
+          </div>
+          <div class="content-grid three-col" id="programsGrid">
+            <!-- Programs loaded dynamically -->
+          </div>
+        </section>
+
+        <!-- ==================== TAB: CATEGORIES ==================== -->
+        <section class="page-section" id="sect-categories">
+          <div class="page-header">
+            <h1 class="page-title">Sports Categories</h1>
+            <p class="page-subtitle">Grouping streams and programs for tracking metrics.</p>
+          </div>
+          <div class="content-grid three-col" id="categoriesGrid">
+            <!-- Dynamically populated -->
+          </div>
+        </section>
+
+        <!-- ==================== TAB: ANALYTICS ==================== -->
+        <section class="page-section" id="sect-analytics">
+          <div class="page-header">
+            <h1 class="page-title">Deep Analytics Report</h1>
+            <p class="page-subtitle">Real-time metrics visualizer.</p>
+          </div>
+          <div class="charts-grid">
+            <div class="chart-card">
+              <h2 class="chart-title">Weekly Participation Trend</h2>
+              <div class="chart-container" style="height: 280px;">
+                <canvas id="weeklyActivityChart"></canvas>
+              </div>
+            </div>
+            <div class="chart-card">
+              <h2 class="chart-title">Monthly Revenue Performance</h2>
+              <div class="chart-container" style="height: 280px;">
+                <canvas id="monthlyPerformanceChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== TAB: REPORTS ==================== -->
+        <section class="page-section" id="sect-reports">
+          <div class="page-header">
+            <h1 class="page-title">Platform Reports</h1>
+            <p class="page-subtitle">Export structural data sheets, CSV, or PDF summaries.</p>
+          </div>
+          <div class="settings-section">
+            <h2 class="settings-section-title"><i class="fa-solid fa-file-invoice-dollar"></i> Generate Export Package</h2>
+            <div class="settings-row">
+              <div class="settings-info">
+                <div class="settings-label">All Active Athletes Log</div>
+                <div class="settings-desc">Includes emails, statuses, phone registrations, and role tags.</div>
+              </div>
+              <button class="btn btn-secondary btn-sm" onclick="window.dashboardApp.generateReport('athletes')">Export CSV</button>
+            </div>
+            <div class="settings-row">
+              <div class="settings-info">
+                <div class="settings-label">Revenue Summaries</div>
+                <div class="settings-desc">Includes subscription plans, athlete counts, and performance estimates.</div>
+              </div>
+              <button class="btn btn-secondary btn-sm" onclick="window.dashboardApp.generateReport('revenue')">Export XLS</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== TAB: NOTIFICATIONS ==================== -->
+        <section class="page-section" id="sect-notifications">
+          <div class="page-header">
+            <h1 class="page-title">Platform Notifications</h1>
+            <p class="page-subtitle">System warning logs and user status triggers.</p>
+          </div>
+          <div class="info-card" id="notificationsCard">
+            <!-- Loaded dynamically -->
+          </div>
+        </section>
+
+        <!-- ==================== TAB: SETTINGS ==================== -->
+        <section class="page-section" id="sect-settings">
+          <div class="page-header">
+            <h1 class="page-title">Coach Settings</h1>
+            <p class="page-subtitle">Alter administrative details and interface attributes.</p>
+          </div>
+          
+          <div class="profile-header-card">
+            <div class="profile-avatar-large" id="settingsAvatar">A</div>
+            <h2 class="profile-name" id="settingsName">Admin Coach</h2>
+            <p class="profile-email-display" id="settingsEmail">admin@apexpulse.com</p>
+          </div>
+
+          <div class="settings-section">
+            <h3 class="settings-section-title"><i class="fa-solid fa-user-gear"></i> Update Administrative Profile</h3>
+            <form id="adminSettingsForm">
+              <div class="settings-form-grid">
+                <div class="settings-form-group">
+                  <label for="adminNameInput">Full Name / Username</label>
+                  <input type="text" id="adminNameInput" class="settings-input" value="Rick Coach" required>
+                </div>
+                <div class="settings-form-group">
+                  <label for="adminPhoneInput">Mobile Connection Phone</label>
+                  <input type="text" id="adminPhoneInput" class="settings-input" value="+1 (555) 019-2834" required>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary" onclick="window.location.href='404.html'">Save Profile Info</button>
+            </form>
+          </div>
+
+          <div class="settings-section">
+            <h3 class="settings-section-title"><i class="fa-solid fa-shield-halved"></i> Safety and Credentials</h3>
+            <form id="adminPasswordForm">
+              <div class="settings-form-grid">
+                <div class="settings-form-group">
+                  <label for="adminPassCurrent">Current Access Key</label>
+                  <input type="password" id="adminPassCurrent" class="settings-input" required>
+                </div>
+                <div class="settings-form-group">
+                  <label for="adminPassNew">New Access Key</label>
+                  <input type="password" id="adminPassNew" class="settings-input" required>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary" onclick="window.location.href='404.html'">Change Access Key</button>
+            </form>
+          </div>
+
+          <div class="settings-section">
+            <h3 class="settings-section-title"><i class="fa-solid fa-sliders"></i> Interface Directives</h3>
+            <div class="settings-row">
+              <div class="settings-info">
+                <div class="settings-label">Silent Notifications Roster</div>
+                <div class="settings-desc">Mute all alert sounds and show badge dots only.</div>
+              </div>
+              <button class="toggle-switch" id="muteToggle"><div class="toggle-knob"></div></button>
+            </div>
+            <div class="settings-row">
+              <div class="settings-info">
+                <div class="settings-label">Biometrics Validation Syncing</div>
+                <div class="settings-desc">Regularly read active telemetry profiles.</div>
+              </div>
+              <button class="toggle-switch on" id="syncToggle"><div class="toggle-knob"></div></button>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.1/vanilla-tilt.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script>
+    // Verify Session is Admin
+    document.addEventListener('DOMContentLoaded', () => {
+      if (AUTH.checkSession('admin')) {
+        window.dashboardApp.init('admin');
+      }
+    });
+  </script>
+</body>
+</html>
