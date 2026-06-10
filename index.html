@@ -4,1018 +4,856 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login — ApexPulse Fitness Platform</title>
-  <meta name="description" content="Login to ApexPulse — Your elite fitness and sports training platform.">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link
-    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Montserrat:wght@700;800;900&family=Bebas+Neue&display=swap"
-    rel="stylesheet">
-  <style>
-    *,
-    *::before,
-    *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    :root {
-      --primary: #17045b;
-      --primary-dark: #1b056a;
-      --accent-blue: #3B82F6;
-      --white: #FFFFFF;
-      --off-white: #F8FAFC;
-      --light-gray: #F1F5F9;
-      --mid-gray: #E2E8F0;
-      --border-gray: #CBD5E1;
-      --text-light: #94A3B8;
-      --text-mid: #64748B;
-      --text-dark: #334155;
-      --text-black: #0F172A;
-      --success: #10B981;
-      --danger: #EF4444;
-      --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.12);
-      --shadow-orange: 0 8px 32px rgba(255, 107, 53, 0.35);
-      --radius-md: 12px;
-      --radius-lg: 16px;
-      --radius-xl: 24px;
-      --radius-full: 9999px;
-    }
-
-    html,
-    body {
-      height: 100%;
-    }
-
-    body {
-      font-family: 'Poppins', sans-serif;
-      background: var(--off-white);
-      overflow: hidden;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    a {
-      text-decoration: none;
-      color: inherit;
-    }
-
-    /* ---- Page Loader ---- */
-    #pageLoader {
-      position: fixed;
-      inset: 0;
-      background: white;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 14px;
-      z-index: 9999;
-    }
-
-    .loader-logo-img {
-      height: 56px;
-      width: auto;
-      object-fit: contain;
-      animation: pulseLogo 1.4s ease-in-out infinite;
-      filter: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='color'%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.10588 0 0 0 0 0.0196 0 0 0 0 0.41568 0 0 0 1 0'/%3E%3C/filter%3E%3C/svg%3E#color");
-    }
-
-    @keyframes pulseLogo {
-
-      0%,
-      100% {
-        opacity: 1;
-        transform: scale(1);
-      }
-
-      50% {
-        opacity: 0.7;
-        transform: scale(0.96);
-      }
-    }
-
-    .loader-track {
-      width: 180px;
-      height: 3px;
-      background: var(--mid-gray);
-      border-radius: 99px;
-      overflow: hidden;
-    }
-
-    .loader-fill {
-      height: 100%;
-      width: 0;
-      background: linear-gradient(90deg, #1b056a, #17045b);
-      border-radius: 99px;
-      animation: fillBar 1s ease forwards;
-    }
-
-    @keyframes fillBar {
-      to {
-        width: 100%;
-      }
-    }
-
-    /* ---- Auth Layout ---- */
-    .auth-wrapper {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      height: 100vh;
-      overflow: hidden;
-    }
-
-    /* ---- Left Showcase ---- */
-    .showcase-panel {
-      position: relative;
-      background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0F172A 100%);
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      padding: 48px;
-      overflow: hidden;
-    }
-
-    .showcase-bg-img {
-      position: absolute;
-      inset: 0;
-      object-fit: cover;
-      width: 100%;
-      height: 100%;
-      opacity: 0.35;
-    }
-
-    .showcase-gradient {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(to top, rgba(15, 23, 42, 0.95) 0%, rgba(15, 23, 42, 0.4) 50%, rgba(15, 23, 42, 0.2) 100%);
-    }
-
-    /* Floating Blobs */
-    .blob {
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(60px);
-      opacity: 0.15;
-      pointer-events: none;
-    }
-
-    .blob-1 {
-      width: 300px;
-      height: 300px;
-      background: #1b056a;
-      top: -80px;
-      left: -80px;
-    }
-
-    .blob-2 {
-      width: 200px;
-      height: 200px;
-      background: #3B82F6;
-      top: 40%;
-      right: -40px;
-    }
-
-    .blob-3 {
-      width: 250px;
-      height: 250px;
-      background: #1b056a;
-      bottom: 30%;
-      left: 20%;
-    }
-
-    /* Floating Stats Widgets */
-    .floating-widgets {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      width: 240px;
-    }
-
-    .widget-card {
-      background: rgba(255, 255, 255, 0.08);
-      backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: var(--radius-lg);
-      padding: 14px 18px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      color: white;
-    }
-
-    .widget-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: var(--radius-md);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 17px;
-      color: white;
-      flex-shrink: 0;
-    }
-
-    .widget-label {
-      font-size: 11px;
-      opacity: 0.7;
-      font-weight: 500;
-    }
-
-    .widget-value {
-      font-size: 16px;
-      font-weight: 700;
-      font-family: 'Montserrat', sans-serif;
-    }
-
-    /* Showcase Content */
-    .showcase-content {
-      position: relative;
-      z-index: 2;
-    }
-
-    .brand-mark {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 32px;
-    }
-
-    .brand-logo-img {
-      height: 44px;
-      width: auto;
-      object-fit: contain;
-      filter: brightness(0) invert(1);
-    }
-
-    .brand-marks {
-      display: flex;
-      justify-content: center;
-      /* Horizontally centers the image */
-      align-items: center;
-      width: 100%;
-      /* Ensures it spans the full width of the card */
-      margin-bottom: 20px;
-      /* Optional: Adds spacing below the logo */
-    }
-
-    .logo-img {
-      height: 50px;
-      /* Adjust height as needed */
-      width: auto;
-      /* Maintains aspect ratio */
-      object-fit: contain;
-      filter: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='color'%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.10588 0 0 0 0 0.0196 0 0 0 0 0.41568 0 0 0 1 0'/%3E%3C/filter%3E%3C/svg%3E#color");
-    }
-
-
-    .showcase-headline {
-      font-family: 'Bebas Neue', cursive;
-      font-size: 64px;
-      line-height: 1;
-      color: white;
-      margin-bottom: 16px;
-      letter-spacing: 1px;
-    }
-
-    .showcase-headline .accent {
-      color: #1b056a;
-    }
-
-    .showcase-desc {
-      font-size: 15px;
-      color: rgba(255, 255, 255, 0.65);
-      line-height: 1.7;
-      max-width: 380px;
-      margin-bottom: 28px;
-    }
-
-    .showcase-stats {
-      display: flex;
-      gap: 32px;
-      flex-wrap: wrap;
-    }
-
-    .showcase-stat {}
-
-    .showcase-stat-num {
-      font-family: 'Montserrat', sans-serif;
-      font-size: 26px;
-      font-weight: 900;
-      color: white;
-    }
-
-    .showcase-stat-num span {
-      color: #1b056a;
-    }
-
-    .showcase-stat-label {
-      font-size: 12px;
-      color: rgba(255, 255, 255, 0.55);
-      font-weight: 500;
-    }
-
-    /* ---- Right Form Side ---- */
-    .form-panel {
-      background: var(--white);
-      padding: 20px 24px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      height: 100%;
-      overflow-y: auto;
-    }
-
-    .form-card {
-      width: 100%;
-      max-width: 440px;
-      margin: 0 auto;
-    }
-
-    .back-home {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text-mid);
-      margin-bottom: 16px;
-      transition: color 0.2s;
-    }
-
-    .back-home:hover {
-      color: var(--primary);
-    }
-
-    .form-header {
-      margin-bottom: 16px;
-    }
-
-    .form-greeting {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--primary);
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      margin-bottom: 6px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .form-title {
-      font-family: 'Montserrat', sans-serif;
-      font-size: 26px;
-      font-weight: 800;
-      color: var(--text-black);
-      letter-spacing: -0.5px;
-      margin-bottom: 4px;
-    }
-
-    .form-subtitle {
-      font-size: 13px;
-      color: var(--text-mid);
-    }
-
-    /* Role Selector */
-    .role-selector {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 16px;
-    }
-
-    .role-option {
-      display: none;
-    }
-
-    .role-label {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 8px 12px;
-      border: 2px solid var(--mid-gray);
-      border-radius: var(--radius-md);
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text-mid);
-      cursor: pointer;
-      transition: all 0.2s ease;
-      user-select: none;
-    }
-
-    .role-label:hover {
-      border-color: var(--primary);
-      color: var(--primary);
-      background: rgba(255, 107, 53, 0.04);
-    }
-
-    .role-option:checked+.role-label {
-      border-color: var(--primary);
-      color: var(--primary);
-      background: rgba(255, 107, 53, 0.08);
-    }
-
-    /* Input Groups */
-    .input-group {
-      margin-bottom: 12px;
-      position: relative;
-    }
-
-    .input-label {
-      display: block;
-      font-size: 12.5px;
-      font-weight: 600;
-      color: var(--text-dark);
-      margin-bottom: 5px;
-    }
-
-    .input-wrapper {
-      position: relative;
-    }
-
-    .input-icon {
-      position: absolute;
-      left: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--text-light);
-      font-size: 14px;
-      pointer-events: none;
-      transition: color 0.2s;
-    }
-
-    .form-input {
-      width: 100%;
-      height: 40px;
-      padding: 0 40px 0 36px;
-      border: 2px solid var(--mid-gray);
-      border-radius: var(--radius-md);
-      font-size: 13.5px;
-      color: var(--text-black);
-      background: var(--off-white);
-      outline: none;
-      transition: all 0.2s ease;
-      font-family: 'Poppins', sans-serif;
-    }
-
-    .form-input:focus {
-      border-color: var(--primary);
-      background: white;
-      box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
-    }
-
-    .form-input:focus+.input-icon,
-    .input-wrapper:focus-within .input-icon {
-      color: var(--primary);
-    }
-
-    .form-input.error {
-      border-color: var(--danger);
-      background: rgba(239, 68, 68, 0.03);
-    }
-
-    .form-input.success {
-      border-color: var(--success);
-    }
-
-    .toggle-pass {
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--text-light);
-      font-size: 14px;
-      cursor: pointer;
-      background: none;
-      border: none;
-      padding: 0;
-      transition: color 0.2s;
-    }
-
-    .toggle-pass:hover {
-      color: var(--primary);
-    }
-
-    .field-error {
-      font-size: 11.5px;
-      color: var(--danger);
-      margin-top: 4px;
-      display: none;
-      animation: slideDown 0.2s ease;
-    }
-
-    .field-error.show {
-      display: block;
-    }
-
-    @keyframes slideDown {
-      from {
-        opacity: 0;
-        transform: translateY(-4px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    /* Row utilities */
-    .form-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 14px;
-    }
-
-    .remember-check {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .remember-check input {
-      display: none;
-    }
-
-    .check-box {
-      width: 16px;
-      height: 16px;
-      border: 2px solid var(--border-gray);
-      border-radius: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 9px;
-      color: transparent;
-      transition: all 0.2s;
-      flex-shrink: 0;
-    }
-
-    .remember-check input:checked~.check-box {
-      background: var(--primary);
-      border-color: var(--primary);
-      color: white;
-    }
-
-    .remember-text {
-      font-size: 12.5px;
-      color: var(--text-mid);
-    }
-
-    .forgot-link {
-      font-size: 12.5px;
-      font-weight: 600;
-      color: var(--primary);
-      transition: opacity 0.2s;
-    }
-
-    .forgot-link:hover {
-      opacity: 0.75;
-    }
-
-    /* Submit Button */
-    .submit-btn {
-      width: 100%;
-      height: 42px;
-      background: linear-gradient(135deg, #1b056a, #031561);
-      color: white;
-      border: none;
-      border-radius: var(--radius-md);
-      font-size: 14px;
-      font-weight: 700;
-      font-family: 'Poppins', sans-serif;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: all 0.25s ease;
-      box-shadow: 0 5px 15px rgba(255, 107, 53, 0.3);
-      position: relative;
-      overflow: hidden;
-      margin-bottom: 14px;
-    }
-
-    .submit-btn::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: rgba(255, 255, 255, 0);
-      transition: background 0.2s;
-    }
-
-    .submit-btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 8px 20px rgba(255, 107, 53, 0.4);
-    }
-
-    .submit-btn:hover::before {
-      background: rgba(255, 255, 255, 0.08);
-    }
-
-    .submit-btn:active {
-      transform: translateY(0);
-    }
-
-    .submit-btn.loading {
-      opacity: 0.8;
-      pointer-events: none;
-    }
-
-    .btn-spinner {
-      width: 16px;
-      height: 16px;
-      border: 2px solid rgba(255, 255, 255, 0.4);
-      border-top-color: white;
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      display: none;
-    }
-
-    .submit-btn.loading .btn-spinner {
-      display: block;
-    }
-
-    .submit-btn.loading .btn-text {
-      display: none;
-    }
-
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    .switch-link {
-      text-align: center;
-      font-size: 13px;
-      color: var(--text-mid);
-    }
-
-    .switch-link a {
-      color: var(--primary);
-      font-weight: 700;
-      transition: opacity 0.2s;
-    }
-
-    .switch-link a:hover {
-      opacity: 0.75;
-    }
-
-    /* Alert banner */
-    .alert-banner {
-      padding: 10px 14px;
-      border-radius: var(--radius-md);
-      font-size: 12.5px;
-      font-weight: 500;
-      display: none;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 12px;
-      animation: slideDown 0.3s ease;
-    }
-
-    .alert-banner.show {
-      display: flex;
-    }
-
-    .alert-banner.error {
-      background: rgba(239, 68, 68, 0.1);
-      color: var(--danger);
-      border: 1px solid rgba(239, 68, 68, 0.2);
-    }
-
-    .alert-banner.success {
-      background: rgba(16, 185, 129, 0.1);
-      color: #059669;
-      border: 1px solid rgba(16, 185, 129, 0.2);
-    }
-
-    /* Divider */
-    .divider {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 12px;
-      color: var(--text-light);
-      font-size: 12px;
-      font-weight: 500;
-    }
-
-    .divider::before,
-    .divider::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--mid-gray);
-    }
-
-    /* Social Buttons */
-    .social-btns {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 14px;
-    }
-
-    .social-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 8px 12px;
-      border: 2px solid var(--mid-gray);
-      border-radius: var(--radius-md);
-      font-size: 12.5px;
-      font-weight: 600;
-      color: var(--text-dark);
-      cursor: pointer;
-      transition: all 0.2s;
-      background: white;
-      font-family: 'Poppins', sans-serif;
-      text-decoration: none;
-    }
-
-    .social-btn:hover {
-      border-color: var(--border-gray);
-      background: var(--off-white);
-      transform: translateY(-1px);
-    }
-
-    /* Responsive */
-    @media (max-width: 900px) {
-      .auth-wrapper {
-        grid-template-columns: 1fr;
-      }
-
-      .showcase-panel {
-        display: none;
-      }
-
-      .form-panel {
-        padding: 28px 20px;
-        background: linear-gradient(160deg, rgba(15, 23, 42, 0.88) 0%, rgba(30, 15, 5, 0.92) 100%),
-          url('assets/slide1.webp') center/cover no-repeat;
-      }
-
-      .form-card {
-        background: rgba(255, 255, 255, 0.96);
-        border-radius: 20px;
-        padding: 28px 22px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.1);
-      }
-    }
-  </style>
+  <title>Stackly - Premium Banking & Ledger Systems</title>
+  <!-- SEO Meta Tags -->
+  <meta name="description"
+    content="Manage your wealth and oversee digital ledger systems with Stackly's modern dashboard. Secure, real-time banking at your fingertips.">
+
+  <!-- CSS Stylesheets -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/animations.css">
+
+  <!-- Chart.js for High-Fidelity Interactive Data Visualizations -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
-<body>
+<body class="customer-theme">
 
-  <!-- Page Loader -->
-  <div id="pageLoader">
-    <img src="assets/logo.webp" alt="ApexPulse" class="loader-logo-img">
-    <div class="loader-track">
-      <div class="loader-fill"></div>
+  <!-- SVG Filters to dynamically remove black backgrounds and colorize Stackly logo -->
+  <svg width="0" height="0" style="position: absolute; pointer-events: none;">
+    <defs>
+      <!-- Customer Blue Logo Filter -->
+      <filter id="logo-customer-blue" color-interpolation-filters="sRGB">
+        <feColorMatrix type="matrix" values="
+          1 0 0 0 0
+          0 1 0 0 0
+          0 0 1 0 0
+          3 3 3 0 -0.1
+        " result="alpha-mask" />
+        <feColorMatrix type="matrix" in="alpha-mask" values="
+          0 0 0 0 0.20
+          0 0 0 0 0.55
+          0 0 0 0 1.00
+          0 0 0 1 0
+        " />
+      </filter>
+
+      <!-- Owner Orange Logo Filter -->
+      <filter id="logo-owner-orange" color-interpolation-filters="sRGB">
+        <feColorMatrix type="matrix" values="
+          1 0 0 0 0
+          0 1 0 0 0
+          0 0 1 0 0
+          3 3 3 0 -0.1
+        " result="alpha-mask" />
+        <feColorMatrix type="matrix" in="alpha-mask" values="
+          0 0 0 0 0.98
+          0 0 0 0 0.45
+          0 0 0 0 0.09
+          0 0 0 1 0
+        " />
+      </filter>
+    </defs>
+  </svg>
+
+
+  <!-- ==========================================
+       1. Custom Holographic Preloader
+       ========================================== -->
+  <div id="preloader" class="preloader">
+    <div class="hologram-loader">
+      <div class="orbital-ring outer"></div>
+      <div class="orbital-ring middle"></div>
+      <div class="orbital-ring inner"></div>
+      <div class="loader-core"></div>
+      <div class="scanning-bar"></div>
     </div>
+    <div id="loader-status-text" class="loader-status-text">RETRIEVING PORTFOLIO DATA...</div>
+    <div class="loader-status-sub">Stackly Private Client Network</div>
   </div>
 
-  <!-- Auth Wrapper -->
-  <div class="auth-wrapper" id="authWrapper" style="opacity:0">
+  <div class="app-container">
 
-    <!-- Left: Showcase Panel -->
-    <div class="showcase-panel">
-      <img class="showcase-bg-img" src="assets/slide1.webp" alt="Elite Training">
-      <div class="showcase-gradient"></div>
-      <div class="blob blob-1"></div>
-      <div class="blob blob-2"></div>
-      <div class="blob blob-3"></div>
+    <!-- ==========================================
+         2. Authentication Section (Login & Sign Up)
+         ========================================== -->
+    <section id="auth-section" class="view-section active-view auth-view">
+      <div class="auth-card glass-panel">
 
-      <!-- Floating Widgets -->
-
-
-      <div class="showcase-content">
-        <div class="brand-mark">
-          <img src="assets/logo.webp" alt="ApexPulse Logo" class="brand-logo-img">
-        </div>
-        <h1 class="showcase-headline">
-          TRAIN SMART.<br><span class="accent">PERFORM ELITE.</span>
-        </h1>
-        <p class="showcase-desc">
-          Join thousands of competitive athletes optimizing recovery metrics and smashing power thresholds daily.
-        </p>
-        <div class="showcase-stats">
-          <div class="showcase-stat">
-            <div class="showcase-stat-num">12<span>K+</span></div>
-            <div class="showcase-stat-label">Athletes</div>
+        <!-- Header -->
+        <div class="auth-header">
+          <div class="brand" style="display: flex; justify-content: center; width: 100%; margin-bottom: 0.5rem;">
+            <img src="logo.jpeg" alt="STACKLY" style="height: 52px; object-fit: contain;">
           </div>
-          <div class="showcase-stat">
-            <div class="showcase-stat-num">340<span>+</span></div>
-            <div class="showcase-stat-label">Programs</div>
-          </div>
-          <div class="showcase-stat">
-            <div class="showcase-stat-num">98<span>%</span></div>
-            <div class="showcase-stat-label">Success Rate</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Right: Form Panel -->
-    <div class="form-panel" style="box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;">
-      <div class="form-card" id="formCard">
-
-        <a href="index.html" class="back-home"><i class="fa-solid fa-arrow-left"></i> Back to Home</a>
-
-        <div class="form-header">
-
-          <div class="brand-marks">
-            <img src="assets/logo.webp" alt="ApexPulse Logo" class="logo-img">
-          </div>
-          <div class="form-greeting">
-            <i class="fa-solid fa-bolt-lightning"></i> Welcome Back
-          </div>
-          <h1 class="form-title">Sign In to Platform</h1>
-          <p class="form-subtitle">Enter your credentials to access your dashboard.</p>
+          <p class="auth-subtitle" id="auth-subtitle-text">Access your secure financial accounts</p>
         </div>
 
-        <!-- Alert Banner -->
-        <div class="alert-banner" id="alertBanner">
-          <i class="fa-solid fa-circle-exclamation"></i>
-          <span id="alertMsg">Invalid credentials</span>
-        </div>
 
-        <!-- Role Selector -->
-        <div class="role-selector">
-          <input type="radio" name="loginRole" id="roleUser" value="user" class="role-option" checked>
-          <label for="roleUser" class="role-label">
-            <i class="fa-solid fa-person-running"></i> Athlete
-          </label>
-          <input type="radio" name="loginRole" id="roleAdmin" value="admin" class="role-option">
-          <label for="roleAdmin" class="role-label">
-            <i class="fa-solid fa-user-shield"></i> Admin / Coach
-          </label>
-        </div>
 
-        <!-- Login Form -->
-        <form id="loginForm">
-          <div class="input-group">
-            <label class="input-label" for="loginEmail">Email Address</label>
+        <!-- SIGN IN FORM -->
+        <form id="login-form">
+          <div class="form-group">
+            <label for="login-role">Account Role</label>
             <div class="input-wrapper">
-              <i class="fa-regular fa-envelope input-icon"></i>
-              <input type="email" id="loginEmail" class="form-input" placeholder="you@apexpulse.com"
-                autocomplete="email" required>
+              <span class="input-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg>
+              </span>
+              <select id="login-role" class="form-input"
+                style="padding-left: 2.75rem; appearance: none; -webkit-appearance: none; background: var(--input-bg);"
+                required>
+                <option value="customer" style="background: var(--bg-tertiary);" selected>Customer</option>
+                <option value="owner" style="background: var(--bg-tertiary);">Platform Owner</option>
+              </select>
             </div>
           </div>
 
-          <div class="input-group">
-            <label class="input-label" for="loginPassword">Password</label>
+          <div class="form-group">
+            <label for="login-email" id="label-login-email">Registered Email</label>
             <div class="input-wrapper">
-              <i class="fa-solid fa-lock input-icon"></i>
-              <input type="password" id="loginPassword" class="form-input" placeholder="••••••••"
-                autocomplete="current-password" required>
-              <button type="button" class="toggle-pass" id="togglePass">
-                <i class="fa-regular fa-eye"></i>
-              </button>
+              <span class="input-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                  <polyline points="22,6 12,13 2,6" />
+                </svg>
+              </span>
+              <input type="email" id="login-email" class="form-input" placeholder="customer@stackly.com" required
+                autocomplete="email">
             </div>
           </div>
 
-          <div class="form-row">
-            <label class="remember-check" for="rememberMe">
-              <input type="checkbox" id="rememberMe">
-              <div class="check-box"><i class="fa-solid fa-check"></i></div>
-              <span class="remember-text">Remember me</span>
-            </label>
-            <a href="404.html" class="forgot-link">
-              <i class="fa-solid fa-key"></i> Forgot Password?
-            </a>
+          <div class="form-group">
+            <label for="login-password" id="label-login-password">Security Password</label>
+            <div class="input-wrapper">
+              <span class="input-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+              </span>
+              <input type="password" id="login-password" class="form-input" placeholder="••••••••" required
+                autocomplete="current-password">
+            </div>
+            <div style="text-align: right; margin-top: 0.5rem;">
+              <span class="auth-link" id="link-forgot-password" style="font-size: 0.85rem;">Forgot Password?</span>
+            </div>
           </div>
 
-          <button type="submit" class="submit-btn" id="loginBtn">
-            <div class="btn-spinner"></div>
-            <span class="btn-text">
-              <i class="fa-solid fa-right-to-bracket"></i> Sign In
-            </span>
+          <button type="submit" class="btn-primary" id="btn-login-submit">
+            <span>Secure Sign In</span>
           </button>
+
+          <p class="auth-footer-text">
+            Don't have an account?
+            <span class="auth-link" id="link-to-register">Create an account</span>
+          </p>
         </form>
 
-        <div class="divider">or continue with</div>
-        <div class="social-btns">
-          <a href="404.html" class="social-btn"><i class="fa-brands fa-google" style="color:#0f172a"></i> Google</a>
-          <a href="404.html" class="social-btn"><i class="fa-brands fa-apple" style="color:#000"></i> Apple</a>
-        </div>
+        <!-- SIGN UP FORM (Initially Hidden) -->
+        <form id="signup-form" class="hidden-section">
+          <div class="form-group">
+            <label for="signup-name">Full Legal Name</label>
+            <div class="input-wrapper">
+              <span class="input-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+              </span>
+              <input type="text" id="signup-name" class="form-input" placeholder="Alexander Wright" required
+                autocomplete="name">
+            </div>
+          </div>
 
-        <div class="switch-link">
-          New to ApexPulse? <a href="signup.html">Create Account <i class="fa-solid fa-arrow-right"></i></a>
-        </div>
+          <div class="form-group">
+            <label for="signup-email">Registered Email Address</label>
+            <div class="input-wrapper">
+              <span class="input-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                  <polyline points="22,6 12,13 2,6" />
+                </svg>
+              </span>
+              <input type="email" id="signup-email" class="form-input" placeholder="alex@stackly.com" required
+                autocomplete="email">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="signup-role">Account Role</label>
+            <div class="input-wrapper">
+              <span class="input-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg>
+              </span>
+              <select id="signup-role" class="form-input"
+                style="padding-left: 2.75rem; appearance: none; -webkit-appearance: none; background: var(--input-bg);"
+                required>
+                <option value="customer" style="background: var(--bg-tertiary);" selected>Customer</option>
+                <option value="owner" style="background: var(--bg-tertiary);">Platform Owner</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="signup-password">Security Password</label>
+            <div class="input-wrapper">
+              <span class="input-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+              </span>
+              <input type="password" id="signup-password" class="form-input" placeholder="••••••••" required
+                autocomplete="new-password">
+            </div>
+          </div>
+
+          <button type="submit" class="btn-primary" id="btn-signup-submit">
+            <span>Create Account</span>
+          </button>
+
+          <p class="auth-footer-text">
+            Already have an active key?
+            <span class="auth-link" id="link-to-login">Sign In</span>
+          </p>
+        </form>
 
       </div>
+    </section>
+
+    <!-- ==========================================
+         3. Dynamic Main Dashboard Section
+         ========================================== -->
+    <section id="dashboard-section" class="view-section dashboard-view">
+
+      <!-- Top Navigation bar -->
+      <nav class="navbar">
+        <div class="nav-brand" style="display: flex; align-items: center; gap: 0.5rem;">
+          <button id="btn-toggle-drawer" class="btn-icon" title="Toggle Menu" style="margin-right: 0.25rem;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+          <img src="logo.jpeg" alt="STACKLY" style="height: 32px; object-fit: contain; vertical-align: middle;">
+          <span
+            style="font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: 1.25rem; letter-spacing: 1px; color: var(--text-primary); margin-left: 0.25rem;">PORTAL</span>
+        </div>
+
+        <div class="nav-actions">
+          <div class="user-badge">
+            <!-- Dynamically populated Profile -->
+            <img id="nav-avatar"
+              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&auto=format&fit=crop&q=60"
+              alt="Avatar">
+            <div>
+              <span id="nav-username">Alex Mercer</span>
+              <div class="role-badge" id="nav-role-badge">Customer</div>
+            </div>
+          </div>
+
+          <!-- Logout CTA -->
+          <button id="btn-logout" class="btn-icon" title="Sign Out">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
+            </svg>
+          </button>
+        </div>
+      </nav>
+
+      <!-- Content Workspace -->
+      <main class="dashboard-content">
+
+        <!-- A. CUSTOMER DASHBOARD -->
+        <div id="customer-dashboard-view" class="customer-grid hidden-section">
+
+          <!-- LEFT SIDEBAR: Cards, Quick Transfers, Goals -->
+          <aside class="sidebar-panel">
+
+            <!-- 3D Credit Card -->
+            <div class="card-perspective" id="credit-card-perspective">
+              <div class="credit-card" id="credit-card-node">
+                <!-- FRONT -->
+                <div class="card-front">
+                  <div class="card-header-row">
+                    <div class="card-chip"></div>
+                    <div class="card-logo">Stackly Elite</div>
+                  </div>
+                  <div class="card-number-label" id="card-number-display">•••• •••• •••• 4892</div>
+                  <div class="card-meta">
+                    <div class="card-holder">
+                      <span class="card-label">Card Holder</span>
+                      <span class="card-value" id="card-holder-name">ALEX MERCER</span>
+                    </div>
+                    <div class="card-expiry">
+                      <span class="card-label">Expires</span>
+                      <span class="card-value">12 / 30</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- BACK -->
+                <div class="card-back">
+                  <div class="magnetic-strip"></div>
+                  <div class="signature-bar">
+                    <span class="cvv-text">CVV: 893</span>
+                  </div>
+                  <div style="padding: 0 2rem; font-size: 0.65rem; color: var(--text-muted);">
+                    Authorized signature only. Account Reference: #839.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Frequent Contacts widget -->
+            <div class="glass-panel panel-padding dashboard-card-hover">
+              <h3 class="widget-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                Frequent Nodes
+              </h3>
+              <div class="contacts-row" id="quick-contacts-container">
+                <!-- Dynamically populated in JS -->
+              </div>
+            </div>
+
+            <!-- Quick Action Transfer form -->
+            <div class="glass-panel panel-padding dashboard-card-hover">
+              <h3 class="widget-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13" />
+                  <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                </svg>
+                Instant Transfer
+              </h3>
+              <form id="transfer-funds-form">
+                <div class="form-group">
+                  <label for="transfer-recipient">Recipient Username/Email</label>
+                  <input type="text" id="transfer-recipient" class="form-input" style="padding-left:1rem"
+                    placeholder="e.g. Owner" required>
+                </div>
+                <div class="form-group">
+                  <label for="transfer-amount">Amount (USD)</label>
+                  <input type="number" id="transfer-amount" class="form-input" style="padding-left:1rem" min="1"
+                    placeholder="$0.00" required>
+                </div>
+                <button type="submit" class="btn-primary" style="padding: 0.7rem">
+                  <span>Transfer Funds</span>
+                </button>
+              </form>
+            </div>
+
+            <!-- Goal Rings -->
+            <div class="glass-panel panel-padding dashboard-card-hover">
+              <h3 class="widget-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <circle cx="12" cy="12" r="6" />
+                  <circle cx="12" cy="12" r="2" />
+                </svg>
+                Savings Milestones
+              </h3>
+              <div class="goals-list">
+
+                <!-- Goal 1 -->
+                <div class="goal-item">
+                  <svg class="circular-progress" viewBox="0 0 36 36">
+                    <defs>
+                      <linearGradient id="cyan-violet-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#06b6d4" />
+                        <stop offset="100%" stop-color="#6366f1" />
+                      </linearGradient>
+                    </defs>
+                    <circle class="bg" cx="18" cy="18" r="16" />
+                    <!-- progress dash-offset formula: 2 * pi * r = 100.5. For 70%, 100.5 * (1 - 0.70) = 30.15 -->
+                    <circle class="bar" cx="18" cy="18" r="16" stroke-dasharray="100.5" stroke-dashoffset="30.15" />
+                  </svg>
+                  <div class="goal-info">
+                    <div class="goal-name">Tesla Model S</div>
+                    <div class="goal-amounts">$35,000 / $50,000</div>
+                  </div>
+                  <div class="goal-percent">70%</div>
+                </div>
+
+                <!-- Goal 2 -->
+                <div class="goal-item">
+                  <svg class="circular-progress" viewBox="0 0 36 36">
+                    <circle class="bg" cx="18" cy="18" r="16" />
+                    <circle class="bar" cx="18" cy="18" r="16" stroke-dasharray="100.5" stroke-dashoffset="55.27" />
+                  </svg>
+                  <div class="goal-info">
+                    <div class="goal-name">Tokyo Getaway</div>
+                    <div class="goal-amounts">$4,500 / $10,000</div>
+                  </div>
+                  <div class="goal-percent">45%</div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Asset Allocation widget -->
+            <div class="glass-panel panel-padding dashboard-card-hover">
+                <h3 class="widget-title">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="20" x2="18" y2="10"></line>
+                    <line x1="12" y1="20" x2="12" y2="4"></line>
+                    <line x1="6" y1="20" x2="6" y2="14"></line>
+                  </svg>
+                  Asset Allocations
+                </h3>
+                <div class="allocation-list">
+                  <div class="alloc-item">
+                    <div class="alloc-meta">
+                      <span class="alloc-name">Cash Vaults</span>
+                      <span class="alloc-percent">65%</span>
+                    </div>
+                    <div class="alloc-bar-wrapper">
+                      <div class="alloc-bar" style="width: 65%; background: var(--success-gradient);"></div>
+                    </div>
+                  </div>
+                  <div class="alloc-item">
+                    <div class="alloc-meta">
+                      <span class="alloc-name">Digital Crypto Nodes</span>
+                      <span class="alloc-percent">25%</span>
+                    </div>
+                    <div class="alloc-bar-wrapper">
+                      <div class="alloc-bar" style="width: 25%; background: var(--accent-gradient);"></div>
+                    </div>
+                  </div>
+                  <div class="alloc-item">
+                    <div class="alloc-meta">
+                      <span class="alloc-name">Bonds & Equities</span>
+                      <span class="alloc-percent">10%</span>
+                    </div>
+                    <div class="alloc-bar-wrapper">
+                      <div class="alloc-bar"
+                        style="width: 10%; background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+          </aside>
+
+          <!-- RIGHT MAIN PANEL: Assets, Charts, Transaction History -->
+          <article class="main-panel">
+
+            <!-- Hero Balance Stats -->
+            <div class="glass-panel balance-hero">
+              <div class="balance-title">Total Account Balance</div>
+              <div class="balance-amount" id="customer-total-balance">$0.00</div>
+              <div class="balance-growth">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                  <polyline points="17 6 23 6 23 12" />
+                </svg>
+                <span>+12.4% this cycle</span>
+              </div>
+              <div class="balance-buttons">
+                <button class="btn-primary" id="btn-deposit-modal" style="flex:1; padding:0.75rem;">
+                  <span>Add Balance</span>
+                </button>
+                <button class="btn-outline" id="btn-scroll-transfers">
+                  <span>Transfer Records</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Card Management widget -->
+            <div class="glass-panel panel-padding dashboard-card-hover card-mgmt-panel">
+              <h3 class="widget-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                  <line x1="2" y1="10" x2="22" y2="10"></line>
+                </svg>
+                Card Control Node
+              </h3>
+              <div class="card-mgmt-content">
+                <div class="mgmt-row">
+                  <div class="mgmt-info">
+                    <span class="mgmt-label">Freeze Credit Card</span>
+                    <span class="mgmt-sub">Restrict all administrative movements</span>
+                  </div>
+                  <label class="switch-control">
+                    <input type="checkbox" id="card-freeze-toggle">
+                    <span class="switch-slider"></span>
+                  </label>
+                </div>
+
+                <div class="mgmt-row">
+                  <div class="mgmt-info">
+                    <span class="mgmt-label">International Ledger Access</span>
+                    <span class="mgmt-sub">Permit node cross-border sync</span>
+                  </div>
+                  <label class="switch-control">
+                    <input type="checkbox" id="card-intl-toggle" checked>
+                    <span class="switch-slider"></span>
+                  </label>
+                </div>
+
+                <div class="mgmt-slider-group">
+                  <div class="mgmt-slider-header">
+                    <span class="mgmt-label">Daily Vault Limit</span>
+                    <span class="mgmt-limit-value" id="card-limit-display">$5,000</span>
+                  </div>
+                  <input type="range" id="card-limit-slider" min="1000" max="25000" step="500" value="5000"
+                    class="premium-slider">
+                </div>
+              </div>
+            </div>
+
+            <!-- Interactive Analytics Chart -->
+            <div class="glass-panel panel-padding dashboard-card-hover">
+              <h3 class="widget-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="20" x2="18" y2="10" />
+                  <line x1="12" y1="20" x2="12" y2="4" />
+                  <line x1="6" y1="20" x2="6" y2="14" />
+                </svg>
+                Portfolio Performance & History
+              </h3>
+              <div class="chart-container">
+                <canvas id="customer-analytics-chart"></canvas>
+              </div>
+            </div>
+
+            <!-- Recent Ledger Activity -->
+            <div id="transfer-records-anchor" class="glass-panel panel-padding dashboard-card-hover">
+              <h3 class="widget-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                  <line x1="16" y1="17" x2="8" y2="17" />
+                  <polyline points="10 9 9 9 8 9" />
+                </svg>
+                Transaction History
+              </h3>
+              <div class="transaction-list" id="customer-tx-list">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+
+          </article>
+        </div>
+
+        <!-- B. PLATFORM OWNER DASHBOARD -->
+        <div id="owner-dashboard-view" class="hidden-section">
+
+          <!-- Key Metrics Statistics Row -->
+          <div class="owner-stats-row">
+            <div class="glass-panel stat-card dashboard-card-hover">
+              <div class="stat-label">Assets Under Management (AUM)</div>
+              <div class="stat-val" id="stat-total-aum">$0.00</div>
+              <div class="stat-meta up">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                  <polyline points="17 6 23 6 23 12" />
+                </svg>
+                <span>+8.2%</span> AUM increase
+              </div>
+            </div>
+
+            <div class="glass-panel stat-card dashboard-card-hover">
+              <div class="stat-label">Active Clients</div>
+              <div class="stat-val" id="stat-total-users">0</div>
+              <div class="stat-meta">
+                <span>Total Active Accounts</span>
+              </div>
+            </div>
+
+            <div class="glass-panel stat-card dashboard-card-hover">
+              <div class="stat-label">Transaction Volume</div>
+              <div class="stat-val" id="stat-total-volume">$0.00</div>
+              <div class="stat-meta">
+                <span>Awaiting system approval</span>
+              </div>
+            </div>
+
+            <div class="glass-panel stat-card dashboard-card-hover">
+              <div class="stat-label">System Status</div>
+              <div class="stat-val">99.98%</div>
+              <div class="stat-meta" style="display:flex; align-items:center; gap:0.35rem">
+                <span class="status-indicator green pulse"></span>
+                <span>All systems operational</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dual Panel Management workspace -->
+          <div class="owner-workspace">
+
+            <!-- Customer Database Center -->
+            <div class="glass-panel panel-padding">
+              <h3 class="widget-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+                Client Database
+              </h3>
+
+              <!-- Search box filtering users -->
+              <div class="search-box-wrapper">
+                <input type="text" id="owner-user-search" class="search-input"
+                  placeholder="Search clients by name, email, status...">
+              </div>
+
+              <div class="data-table-container">
+                <table class="custom-table" id="owner-users-table">
+                  <thead>
+                    <tr>
+                      <th>Client Account</th>
+                      <th>Available Balance</th>
+                      <th>Account Status</th>
+                      <th style="text-align: right">Administrative Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="owner-users-table-body">
+                    <!-- Dynamically populated -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Ledger approvals & Mini Stats Chart -->
+            <div class="sidebar-panel">
+
+              <!-- Realtime Pending Approvals Queue -->
+              <div class="glass-panel panel-padding">
+                <h3 class="widget-title">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg>
+                  Pending Approvals Queue
+                </h3>
+                <div id="owner-pending-ledger" class="transaction-list">
+                  <!-- Dynamically populated pending transactions -->
+                </div>
+              </div>
+
+              <!-- Owner Analytics Mini Chart -->
+              <div class="glass-panel panel-padding">
+                <h3 class="widget-title">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                  </svg>
+                  Transaction Volume Rate
+                </h3>
+                <div class="chart-container" style="height: 220px">
+                  <canvas id="owner-analytics-chart"></canvas>
+
+
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </section>
+
+    <!-- ==========================================
+         5. Holographic 404 Error Section
+         ========================================== -->
+    <section id="error-section" class="view-section error-view">
+      <div class="error-card glass-panel">
+        <div class="error-glow-ring">
+          <div class="error-icon-wrapper">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" class="pulse-indicator">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+          </div>
+        </div>
+        <h1 class="error-title">404</h1>
+        <h2 class="error-subtitle">SECURITY GATEWAY TIMEOUT</h2>
+        <p class="error-text">
+          The requested financial ledger resource or administrative action is restricted or does not exist on this
+          decentralized node.
+        </p>
+        <div class="error-code-panel">
+          <span class="code-label">NODE STATUS:</span> <span class="code-value text-red">DISCONNECTED</span><br>
+          <span class="code-label">ERROR REF:</span> <span class="code-value">ERR_LEDGER_RESTRICTED_382</span>
+        </div>
+        <button id="btn-error-back" class="btn-primary" style="margin-top: 1.5rem;">
+          <span>Return to Portal</span>
+        </button>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ==========================================
+       6. Side Navigation Drawer & Overlay
+       ========================================== -->
+  <div id="drawer-overlay" class="drawer-overlay"></div>
+  <div id="side-drawer" class="side-drawer glass-panel">
+    <div class="drawer-header">
+      <div class="drawer-brand">
+        <img src="logo.jpeg" alt="STACKLY" style="height: 32px; object-fit: contain; vertical-align: middle;">
+        <span
+          style="font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: 1.1rem; letter-spacing: 1px; color: var(--text-primary); margin-left: 0.25rem;">PORTAL</span>
+      </div>
+      <button id="btn-close-drawer" class="btn-icon" title="Close Menu">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <div class="drawer-user-profile">
+      <img id="drawer-avatar"
+        src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&auto=format&fit=crop&q=60" alt="Avatar">
+      <div class="drawer-user-details">
+        <span id="drawer-username">Alex Mercer</span>
+        <span id="drawer-role-badge" class="role-badge">Customer</span>
+      </div>
+    </div>
+
+    <nav class="drawer-nav">
+      <button class="drawer-nav-item active-nav" data-target="dashboard">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7"></rect>
+          <rect x="14" y="3" width="7" height="7"></rect>
+          <rect x="14" y="14" width="7" height="7"></rect>
+          <rect x="3" y="14" width="7" height="7"></rect>
+        </svg>
+        <span>Overview Portal</span>
+      </button>
+      <button class="drawer-nav-item" data-target="vaults">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+        <span>Secure Vaults</span>
+      </button>
+      <button class="drawer-nav-item" data-target="ledgers">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+        <span>Ledger Logs</span>
+      </button>
+      <button class="drawer-nav-item" data-target="telemetry">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+        </svg>
+        <span>Network Status</span>
+      </button>
+      <button class="drawer-nav-item" data-target="support">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+        <span>Support Center</span>
+      </button>
+      <button class="drawer-nav-item" data-target="settings">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path
+            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+          </path>
+        </svg>
+        <span>Node Settings</span>
+      </button>
+    </nav>
+
+    <div class="drawer-footer">
+      <button id="btn-drawer-logout" class="btn-outline"
+        style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"></path>
+        </svg>
+        <span>Sign Out</span>
+      </button>
     </div>
   </div>
 
-  <!-- Scripts -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.1/vanilla-tilt.min.js"></script>
+  <!-- ==========================================
+       4. Transaction Modal Overlay (Deposit / Add Balance)
+       ========================================== -->
+  <div id="deposit-modal" class="modal-overlay">
+    <div class="modal-content glass-panel">
+      <div class="modal-header">
+        <h3 class="modal-title">Deposit Capital</h3>
+        <button id="btn-close-deposit" class="btn-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <form id="deposit-form">
+        <div class="form-group">
+          <label for="deposit-amount">Deposit Amount (USD)</label>
+          <div class="input-wrapper">
+            <span class="input-icon" style="left:1rem; font-weight:700; color:var(--text-secondary)">$</span>
+            <input type="number" id="deposit-amount" class="form-input" style="padding-left:2.2rem" min="5"
+              placeholder="50.00" required>
+          </div>
+          <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.5rem">
+            This balance will be credited instantly to your account.
+          </div>
+        </div>
+        <button type="submit" class="btn-primary" style="margin-top: 0.5rem">
+          <span>Complete Deposit</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- JavaScript Applications -->
+  <script src="js/app.js"></script>
   <script src="js/auth.js"></script>
-  <script>
-    // Page Loader
-    window.addEventListener('load', () => {
-      setTimeout(() => {
-        gsap.to('#pageLoader', {
-          opacity: 0, duration: 0.5, delay: 0.5,
-          onComplete: () => {
-            document.getElementById('pageLoader').style.display = 'none';
-          }
-        });
-        gsap.to('#authWrapper', {
-          opacity: 1, duration: 0.6, delay: 0.8
-        });
-        // Stagger animations
-        gsap.from('.showcase-panel .brand-mark', { y: 30, opacity: 0, duration: 0.7, delay: 1, clearProps: "all" });
-        gsap.from('.showcase-headline', { y: 40, opacity: 0, duration: 0.7, delay: 1.15, clearProps: "all" });
-        gsap.from('.showcase-desc', { y: 20, opacity: 0, duration: 0.6, delay: 1.3, clearProps: "all" });
-        gsap.from('.showcase-stats .showcase-stat', { y: 20, opacity: 0, duration: 0.5, stagger: 0.12, delay: 1.45, clearProps: "all" });
-        gsap.from('.widget-card', { x: -30, opacity: 0, duration: 0.6, stagger: 0.15, delay: 1.2, clearProps: "all" });
-        gsap.from('.form-header', { x: 40, opacity: 0, duration: 0.7, delay: 1.1, clearProps: "all" });
-        gsap.from('.role-selector', { y: 20, opacity: 0, duration: 0.5, delay: 1.25, clearProps: "all" });
-        gsap.from('.input-group', { y: 18, opacity: 0, duration: 0.45, stagger: 0.1, delay: 1.35, clearProps: "all" });
-        gsap.from('.form-row, .submit-btn, .divider, .social-btns, .switch-link', {
-          y: 15, opacity: 0, duration: 0.4, stagger: 0.08, delay: 1.7, clearProps: "all"
-        });
-      }, 200);
-    });
+  <script src="js/dashboard.js"></script>
 
-    // Floating animation for widgets
-    gsap.to('.widget-card', {
-      y: '-8px', duration: 2.5, ease: 'sine.inOut',
-      yoyo: true, repeat: -1, stagger: 0.5, delay: 2
-    });
 
-    // Blob animation
-    gsap.to('.blob-1', { x: 40, y: 30, duration: 6, ease: 'sine.inOut', yoyo: true, repeat: -1 });
-    gsap.to('.blob-2', { x: -30, y: -20, duration: 5, ease: 'sine.inOut', yoyo: true, repeat: -1 });
-    gsap.to('.blob-3', { x: 20, y: 40, duration: 7, ease: 'sine.inOut', yoyo: true, repeat: -1 });
-
-    // Password toggle
-    document.getElementById('togglePass').addEventListener('click', function () {
-      const inp = document.getElementById('loginPassword');
-      const icon = this.querySelector('i');
-      if (inp.type === 'password') {
-        inp.type = 'text';
-        icon.className = 'fa-regular fa-eye-slash';
-      } else {
-        inp.type = 'password';
-        icon.className = 'fa-regular fa-eye';
-      }
-    });
-
-    // Form submission
-    document.getElementById('loginForm').addEventListener('submit', function (e) {
-      e.preventDefault();
-      const email = document.getElementById('loginEmail').value.trim();
-      const pass = document.getElementById('loginPassword').value;
-      const role = document.querySelector('input[name="loginRole"]:checked').value;
-
-      // Reset alert
-      document.getElementById('alertBanner').classList.remove('show');
-
-      const btn = document.getElementById('loginBtn');
-      btn.classList.add('loading');
-
-      setTimeout(() => {
-        btn.classList.remove('loading');
-        const result = AUTH.login(email, pass, role);
-        if (result.success) {
-          gsap.to('#formCard', {
-            scale: 0.97, opacity: 0, duration: 0.35, onComplete: () => {
-              if (role === 'admin') window.location.href = 'admin-dashboard.html';
-              else window.location.href = 'user-dashboard.html';
-            }
-          });
-        } else {
-          const banner = document.getElementById('alertBanner');
-          banner.className = 'alert-banner error show';
-          document.getElementById('alertMsg').textContent = result.message;
-          gsap.from('#alertBanner', { y: -10, opacity: 0, duration: 0.3 });
-          gsap.to('#formCard', { x: -8, duration: 0.07, yoyo: true, repeat: 5 });
-        }
-      }, 1200);
-    });
-
-    // Input focus ripple color
-    document.querySelectorAll('.form-input').forEach(inp => {
-      inp.addEventListener('focus', () => {
-        inp.classList.remove('error');
-      });
-    });
-  </script>
 </body>
 
 </html>
